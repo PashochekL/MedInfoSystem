@@ -3,6 +3,7 @@ using System;
 using MedInfoSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MedInfoSystem.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241022131328_UpdateGenderColumn")]
+    partial class UpdateGenderColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,8 +143,7 @@ namespace MedInfoSystem.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -149,8 +151,7 @@ namespace MedInfoSystem.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("character varying(15)");
+                        .HasColumnType("text");
 
                     b.Property<Guid>("SpecialityId")
                         .HasColumnType("uuid");
@@ -257,86 +258,6 @@ namespace MedInfoSystem.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Specialities");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("35ed9da3-b212-4ef9-9e0a-44811be770ec"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8446),
-                            Name = "Акушер-гинеколог"
-                        },
-                        new
-                        {
-                            Id = new Guid("7de43cb8-b34a-4455-9cf6-b2d54f40597d"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8450),
-                            Name = "Анестезиолог-реаниматолог"
-                        },
-                        new
-                        {
-                            Id = new Guid("851e66ed-e55a-4e0f-b855-1f0bf7f16ad4"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8452),
-                            Name = "Дерматовенеролог"
-                        },
-                        new
-                        {
-                            Id = new Guid("00261b73-461b-4301-b343-e9e755385ecd"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8454),
-                            Name = "Инфекционист"
-                        },
-                        new
-                        {
-                            Id = new Guid("a769f80d-9385-4a78-b189-5b565d54c82b"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8456),
-                            Name = "Кардиолог"
-                        },
-                        new
-                        {
-                            Id = new Guid("d5a52689-999c-46ae-a413-2b838b907c75"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8458),
-                            Name = "Невролог"
-                        },
-                        new
-                        {
-                            Id = new Guid("eee10541-6d2b-4afe-9ba5-175225614561"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8460),
-                            Name = "Онколог"
-                        },
-                        new
-                        {
-                            Id = new Guid("d0da12fb-2bb4-417b-b1ba-eb7d7da45ce0"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8476),
-                            Name = "Ортопед"
-                        },
-                        new
-                        {
-                            Id = new Guid("77f422b7-fe13-4653-8dcb-1b4ddbbe5fd5"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8477),
-                            Name = "Педиатр"
-                        },
-                        new
-                        {
-                            Id = new Guid("57163c84-11be-4a05-9313-ea583f4a1de3"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8479),
-                            Name = "Ревматолог"
-                        },
-                        new
-                        {
-                            Id = new Guid("533a4457-cb20-45ee-881a-98eb43a32b54"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8480),
-                            Name = "Стоматолог"
-                        },
-                        new
-                        {
-                            Id = new Guid("78dfe648-3829-48b3-9c76-d0b0987647e8"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8482),
-                            Name = "Хирург"
-                        },
-                        new
-                        {
-                            Id = new Guid("3749e7e9-0255-4b76-ad60-5a9c6e4cdeea"),
-                            CreateTime = new DateTime(2024, 10, 22, 13, 58, 3, 393, DateTimeKind.Utc).AddTicks(8483),
-                            Name = "Эндокринолог"
-                        });
                 });
 
             modelBuilder.Entity("MedInfoSystem.Data.Entities.Comment", b =>
