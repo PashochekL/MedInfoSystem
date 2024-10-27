@@ -19,9 +19,21 @@ namespace MedInfoSystem.Data
 
         public DbSet<Doctor> Doctors { get; set; }
 
+        public DbSet<Speciality> Specialities { get; set; }
+
+        public DbSet<Comment> Comments { get; set; }
+
+        public DbSet<RevokedToken> RevokedTokens { get; set; }
+
+        public DbSet<ICD> ICDs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Doctor>()
+                .Property(d => d.Gender)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Patient>()
                 .Property(d => d.Gender)
                 .HasConversion<string>();
 
@@ -41,11 +53,5 @@ namespace MedInfoSystem.Data
                 new Speciality { Id = Guid.NewGuid(), Name = "Эндокринолог", CreateTime = DateTime.UtcNow }
             );
         }
-
-        DbSet<Speciality> Specialities { get; set; }
-
-        DbSet<Comment> Comments { get; set; }
-
-
     }
 }

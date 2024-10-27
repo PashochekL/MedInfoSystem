@@ -7,10 +7,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.AddConsole();
 
 builder.Services.AddDbContext<AppDBContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -28,6 +31,39 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var authHeader = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (authHeader != null && authHeader.StartsWith("Bearer "))
+                {
+                    var token = authHeader.Substring("Bearer ".Length).Trim();
+
+                    if (token == null)
+                    {
+                        context.Fail("Invalid token");
+                        return;
+                    }
+
+                    var blacklistService = context.HttpContext.RequestServices.GetRequiredService<TokenBlacklistService>();
+
+                    try
+                    {
+                        if (blacklistService.IsTokenRevoked(token))
+                        {
+                            context.Fail("Token has been revoked");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        context.Fail("Internal server error");
+                    }
+                }
+            }
         };
     });
 
@@ -59,7 +95,10 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddControllers();
-
+builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IDictionaryService, DictionaryService>();
+builder.Services.AddScoped<TokenBlacklistService>();
+builder.Services.AddScoped<CsvDataLoaderService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 
@@ -70,7 +109,6 @@ using (var rng = RandomNumberGenerator.Create())
 {
     rng.GetBytes(key);
 }
-Console.WriteLine(Convert.ToBase64String(key));
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -88,6 +126,20 @@ app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"));
 
+await LoadCsvDataAsync(app.Services);
+
 app.MapControllers();
 
 app.Run();
+
+async Task LoadCsvDataAsync(IServiceProvider services)
+{
+    using (var scope = services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
+        var csvLoader = scope.ServiceProvider.GetRequiredService<CsvDataLoaderService>();
+
+        string filePath = @"C:\Users\Пользователь\source\repos\MedInfoSystem\MedInfoSystem\ICD\DirectoryICD.csv";
+        await csvLoader.LoadCsvToDatabase(filePath);
+    }
+}
