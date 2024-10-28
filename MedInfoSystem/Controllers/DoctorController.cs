@@ -24,9 +24,9 @@ namespace MedInfoSystem.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> AddNewUser([FromBody] DoctorRegisterDTO doctorRegisterDTO)
         {
-            await _service.AddDoctor(doctorRegisterDTO);
+            string tokenAutorize = await _service.AddDoctor(doctorRegisterDTO);
             
-            return Ok();
+            return Ok(new { token = tokenAutorize });
         }
 
         [HttpPost("login")]

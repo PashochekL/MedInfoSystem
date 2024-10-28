@@ -3,6 +3,7 @@ using System;
 using MedInfoSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MedInfoSystem.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20241028123732_FixedClassRelationships")]
+    partial class FixedClassRelationships
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -323,80 +326,80 @@ namespace MedInfoSystem.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("3978d566-0b3d-41c9-a7d3-e66b45e4ee78"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(3972),
+                            Id = new Guid("4bda086d-7d07-4421-8745-42ac8a0c15d2"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9106),
                             Name = "Акушер-гинеколог"
                         },
                         new
                         {
-                            Id = new Guid("a3aa605c-6cb8-4ac7-bf27-825895c09d76"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(3975),
+                            Id = new Guid("83243d0a-504d-45f1-9efc-1568b5034c72"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9112),
                             Name = "Анестезиолог-реаниматолог"
                         },
                         new
                         {
-                            Id = new Guid("5afc931c-0e53-49f1-a557-e93014e1d9fd"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(3978),
+                            Id = new Guid("7185a783-2873-4594-ae99-7027e381b1f2"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9116),
                             Name = "Дерматовенеролог"
                         },
                         new
                         {
-                            Id = new Guid("0ef08c0f-2fb6-4421-bc5c-1b04e440d493"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(3980),
+                            Id = new Guid("bd796efb-6103-4124-97d7-1960d7d66af7"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9119),
                             Name = "Инфекционист"
                         },
                         new
                         {
-                            Id = new Guid("60414cd9-d659-4179-9927-dcdb3a52f751"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(3982),
+                            Id = new Guid("16eba5c8-c5b3-4a2f-acca-87915d3100c6"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9121),
                             Name = "Кардиолог"
                         },
                         new
                         {
-                            Id = new Guid("e58f0b4e-7ecb-4c21-9eb3-743df55b97e7"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(3983),
+                            Id = new Guid("6e391505-d630-46e3-b023-3a61e28cf400"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9123),
                             Name = "Невролог"
                         },
                         new
                         {
-                            Id = new Guid("830feb82-62fc-4b04-a14a-6e74ab554a63"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(3985),
+                            Id = new Guid("cf95cb57-6283-4127-ad60-018643242f07"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9125),
                             Name = "Онколог"
                         },
                         new
                         {
-                            Id = new Guid("f6792a9d-c5ba-459d-b4c8-192664abdcac"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(3999),
+                            Id = new Guid("f74ac284-f2af-4102-a2bd-63de429588b1"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9144),
                             Name = "Ортопед"
                         },
                         new
                         {
-                            Id = new Guid("c5da51ef-a960-49bd-b2b1-fe8cbb397487"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(4000),
+                            Id = new Guid("a2a69975-af5f-4f9f-a4e7-05c675291d8b"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9147),
                             Name = "Педиатр"
                         },
                         new
                         {
-                            Id = new Guid("a3fa2b54-e5d4-481f-aa6e-579606f45de5"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(4002),
+                            Id = new Guid("6668cf41-9fdd-40d6-a1a9-9f74e3aaec32"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9149),
                             Name = "Ревматолог"
                         },
                         new
                         {
-                            Id = new Guid("1c3ec727-2086-45fd-a1b1-8703e2513f3b"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(4003),
+                            Id = new Guid("21201d71-00ab-434b-90e0-610a030bf852"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9151),
                             Name = "Стоматолог"
                         },
                         new
                         {
-                            Id = new Guid("b8052338-3bc9-4cb4-8bec-548e17bf6a1b"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(4005),
+                            Id = new Guid("29135838-af06-44da-89cd-f1a0c3187577"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9153),
                             Name = "Хирург"
                         },
                         new
                         {
-                            Id = new Guid("8c000e9f-f950-47e7-aa00-e90c05d4167e"),
-                            CreateTime = new DateTime(2024, 10, 28, 14, 22, 12, 853, DateTimeKind.Utc).AddTicks(4007),
+                            Id = new Guid("b8f2c7ee-5a13-495d-aec2-c06224ff0d68"),
+                            CreateTime = new DateTime(2024, 10, 28, 12, 37, 31, 708, DateTimeKind.Utc).AddTicks(9155),
                             Name = "Эндокринолог"
                         });
                 });
@@ -419,13 +422,13 @@ namespace MedInfoSystem.Migrations
             modelBuilder.Entity("MedInfoSystem.Data.Entities.Consultation", b =>
                 {
                     b.HasOne("MedInfoSystem.Data.Entities.Inspection", "Inspection")
-                        .WithMany("Consultations")
+                        .WithMany()
                         .HasForeignKey("InspectionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("MedInfoSystem.Data.Entities.Speciality", "Speciality")
-                        .WithMany("Consultation")
+                        .WithMany()
                         .HasForeignKey("SpecialityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -438,7 +441,7 @@ namespace MedInfoSystem.Migrations
             modelBuilder.Entity("MedInfoSystem.Data.Entities.Diagnosis", b =>
                 {
                     b.HasOne("MedInfoSystem.Data.Entities.Inspection", "Inspection")
-                        .WithMany("Diagnoses")
+                        .WithMany()
                         .HasForeignKey("InspectionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -449,7 +452,7 @@ namespace MedInfoSystem.Migrations
             modelBuilder.Entity("MedInfoSystem.Data.Entities.Doctor", b =>
                 {
                     b.HasOne("MedInfoSystem.Data.Entities.Speciality", "speciality")
-                        .WithMany("Doctors")
+                        .WithMany()
                         .HasForeignKey("SpecialityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -486,23 +489,9 @@ namespace MedInfoSystem.Migrations
                     b.Navigation("Inspection");
                 });
 
-            modelBuilder.Entity("MedInfoSystem.Data.Entities.Inspection", b =>
-                {
-                    b.Navigation("Consultations");
-
-                    b.Navigation("Diagnoses");
-                });
-
             modelBuilder.Entity("MedInfoSystem.Data.Entities.Patient", b =>
                 {
                     b.Navigation("Inspection");
-                });
-
-            modelBuilder.Entity("MedInfoSystem.Data.Entities.Speciality", b =>
-                {
-                    b.Navigation("Consultation");
-
-                    b.Navigation("Doctors");
                 });
 #pragma warning restore 612, 618
         }

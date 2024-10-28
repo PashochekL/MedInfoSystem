@@ -37,6 +37,14 @@ namespace MedInfoSystem.Data
                 .Property(d => d.Gender)
                 .HasConversion<string>();
 
+            modelBuilder.Entity<Diagnosis>()
+                .Property(d => d.Type)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Inspection>()
+                .Property(d => d.Conclusion)
+                .HasConversion<string>();
+
             modelBuilder.Entity<Speciality>().HasData(
                 new Speciality { Id = Guid.NewGuid(), Name = "Акушер-гинеколог", CreateTime = DateTime.UtcNow },
                 new Speciality { Id = Guid.NewGuid(), Name = "Анестезиолог-реаниматолог", CreateTime = DateTime.UtcNow },

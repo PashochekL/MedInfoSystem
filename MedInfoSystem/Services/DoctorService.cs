@@ -1,4 +1,5 @@
-﻿using MedInfoSystem.Data;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using MedInfoSystem.Data;
 using MedInfoSystem.Data.DTO.Doctor;
 using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Data.Entities.Enums;
@@ -18,7 +19,7 @@ namespace MedInfoSystem.Services
             _tokenService = tokenService;
         }
 
-        public async Task AddDoctor(DoctorRegisterDTO doctorRegisterDTO)
+        public async Task<string> AddDoctor(DoctorRegisterDTO doctorRegisterDTO)
         {
             if (doctorRegisterDTO == null)
             {
@@ -39,6 +40,9 @@ namespace MedInfoSystem.Services
             };
             _dbContext.Add(doctor);
             await _dbContext.SaveChangesAsync();
+            string token = _tokenService.GenerateToken(doctor.Id);
+
+            return token;
         }
 
         public async Task<string> AutorizeDoctor(DoctorLoginDTO doctorLoginDTO)

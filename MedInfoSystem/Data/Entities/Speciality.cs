@@ -6,7 +6,7 @@
         public string Name { get; set; }
         public DateTime CreateTime { get; set; }
 
-        //List<Consultation> Consultation { get; set; }
-        //List<Doctor> doctors { get; set; }
+        public List<Consultation> Consultation { get; set; } = new List<Consultation>();
+        public List<Doctor> Doctors { get; set; } = new List<Doctor>();
     }
 }

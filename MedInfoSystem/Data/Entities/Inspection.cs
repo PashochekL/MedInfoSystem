@@ -1,4 +1,6 @@
-﻿using MedInfoSystem.Data.Entities.Enums;
+﻿using MedInfoSystem.Data.DTO.Diagnosis;
+using MedInfoSystem.Data.Entities.Enums;
+using System.Text.Json.Serialization;
 
 namespace MedInfoSystem.Data.Entities
 {
@@ -32,8 +34,8 @@ namespace MedInfoSystem.Data.Entities
         public Doctor Doctor { get; set; }
 
 
-        List <Diagnosis> Diagnoses { get; set; }
-        List <Consultation> Consultations { get; set; }
+        public List <Diagnosis> Diagnoses { get; set; } = new List<Diagnosis>();
+        public List <Consultation> Consultations { get; set; } = new List<Consultation>();
 
         public DateTime CreateTime { get; set; }
     }

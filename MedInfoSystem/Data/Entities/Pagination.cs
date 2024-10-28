@@ -12,9 +12,5 @@
             Count = (int)Math.Ceiling(count / (double)pageSize); ;
             Current = pageNumber;
         }
-
-        //public bool HasPreviousPage => PageNumber > 1;
-
-        //public bool HasNextPage => PageNumber < TotalPages;
     }
 }

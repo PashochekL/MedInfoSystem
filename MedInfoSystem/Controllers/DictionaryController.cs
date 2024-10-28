@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using MedInfoSystem.Services;
 using MedInfoSystem.Services.IServices;
 using MedInfoSystem.Data.DTO.Speciality;
+using DocumentFormat.OpenXml.Wordprocessing;
+using MedInfoSystem.Data.DTO.ICD;
 
 namespace MedInfoSystem.Controllers
 {
@@ -12,7 +14,6 @@ namespace MedInfoSystem.Controllers
     {
         private readonly IDictionaryService _service;
         private readonly CsvDataLoaderService _csvDataLoaderService;
-
 
         public DictionaryController(IDictionaryService service, CsvDataLoaderService csvDataLoaderService)
         {
@@ -28,8 +29,15 @@ namespace MedInfoSystem.Controllers
             return Ok(specialityList);
         }
 
-        [HttpGet("icd10/roots")]
+        [HttpGet("icd10")]
+        public async Task<ActionResult<ICDRecordsDTO>> SearchDiagnoses(string? request, int page, int size)
+        {
+            var icdRoots = await _service.SearchDiagnosesICD(request, page, size);
 
+            return Ok(icdRoots);
+        }
+
+        [HttpGet("icd10/roots")]
         public async Task<IActionResult> GetICD10Roots()
         {
             var listIcdroots = await _service.GetICDRoots();

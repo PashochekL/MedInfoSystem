@@ -3,10 +3,10 @@
 namespace MedInfoSystem.Data.Entities.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum Conclusion
+    public enum DiagnosisType
     {
-        Recovery,
-        Disease,
-        Death
+        Main,
+        Сoncomitant,
+        Сomplication
     }
 }

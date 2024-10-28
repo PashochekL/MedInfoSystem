@@ -10,7 +10,7 @@
         public Guid SpecialityId { get; set; }
         public Speciality Speciality { get; set; }
 
-        public List<Comment> RootComment { get; set; }
+        public List<Comment> RootComment { get; set; } = new List<Comment>();
 
         public int CommentsNumber { get; set; }
         public DateTime CreateTime { get; set; }

@@ -10,6 +10,6 @@ namespace MedInfoSystem.Data.Entities
         public Gender Gender { get; set; }
         public DateTime CreateTime { get; set; }
 
-        public List<Inspection> Inspection { get; set; }
+        public List<Inspection> Inspection { get; set; } = new List<Inspection>();
     }
 }
