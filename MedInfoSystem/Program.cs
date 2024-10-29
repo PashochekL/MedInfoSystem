@@ -1,5 +1,6 @@
 using MedInfoSystem;
 using MedInfoSystem.Data;
+using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Services;
 using MedInfoSystem.Services.IServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -97,6 +98,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddControllers();
 builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IDictionaryService, DictionaryService>();
+builder.Services.AddScoped<IConsultationService, ConsultationService>();
+builder.Services.AddScoped<IInspectionService, InspectionService>();
 builder.Services.AddScoped<TokenBlacklistService>();
 builder.Services.AddScoped<CsvDataLoaderService>();
 builder.Services.AddEndpointsApiExplorer();

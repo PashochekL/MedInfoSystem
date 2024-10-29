@@ -7,7 +7,7 @@ namespace MedInfoSystem.Data.DTO.Diagnosis
         [Required]
         public Guid IcdDiagnosisId { get; set; }
         [StringLength(5000)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
         [Required]
         public DiagnosisType Type { get; set; }
     }
