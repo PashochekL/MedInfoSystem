@@ -6,7 +6,7 @@ namespace MedInfoSystem.Services.IServices
     public interface IPatientService
     {
         public Task<Guid> AddPatient(PatientCreateDTO patientCreateDTO);
-        public Task<Guid> AddInspectionForpatient(Guid patientId, InspectionCreateDTO inspectionCreateDTO);
+        public Task<Guid> AddInspectionForPatient(Guid patientId, InspectionCreateDTO inspectionCreateDTO);
         public Task<PatientInfoDTO> GetPatientById(Guid patientId);
 
     }

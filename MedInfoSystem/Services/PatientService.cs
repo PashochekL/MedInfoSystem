@@ -37,12 +37,24 @@ namespace MedInfoSystem.Services
             return patient.Id;
         }
 
-        public async Task<Guid> AddInspectionForpatient(Guid patientId, InspectionCreateDTO inspectionCreateDTO)
+        public async Task<Guid> AddInspectionForPatient(Guid patientId, InspectionCreateDTO inspectionCreateDTO)
         {
+            var allInspections = await _dbContext.Inspections.Where(i => i.PatientId == patientId).ToListAsync();
+
             if (patientId == Guid.Empty)
             {
                 throw new BadHttpRequestException("Empty request field");
+
+                return Guid.Empty; // временная мера пока не сделаю обработчик и перехватчик ошибок
             }
+
+            if (inspectionCreateDTO.NextVisitDate.HasValue && inspectionCreateDTO.Date >= inspectionCreateDTO.NextVisitDate.Value.Date)
+            {
+                throw new BadHttpRequestException("Bad request field");
+
+                return Guid.Empty; // временная мера пока не сделаю обработчик и перехватчик ошибок
+            }
+
             var specialityId = inspectionCreateDTO.Consultations.FirstOrDefault().SpecialityId;
             var patient = await _dbContext.Patients.FindAsync(patientId);
             var doctor = await _dbContext.Doctors.FirstOrDefaultAsync(d => d.SpecialityId == specialityId);
@@ -52,32 +64,200 @@ namespace MedInfoSystem.Services
                 throw new BadHttpRequestException("Doctor with the specified speciality not found.");
             }
 
-            Inspection inspection = new Inspection()
-            {
-                Anamnesis = inspectionCreateDTO.Anamesis,
-                Complaints = inspectionCreateDTO.Complaints,
-                Treatment = inspectionCreateDTO.Treatment,
-                Conclusion = inspectionCreateDTO.Conclusion,
-                NextVisitDate = inspectionCreateDTO.NextVisitDate,
-                PatientId = patientId,
-                DoctorId = doctor.Id,
-                CreateTime = DateTime.UtcNow
-            };
+            Inspection inspection = null;
 
-            if (inspectionCreateDTO.DeathDate.HasValue)
+            if (allInspections == null)
             {
-                inspection.DeathDate = inspectionCreateDTO.DeathDate;
+                if (inspectionCreateDTO.Conclusion == Conclusion.Disease)
+                {
+                    inspection = new Inspection
+                    {
+                        Anamnesis = inspectionCreateDTO.Anamesis,
+                        Complaints = inspectionCreateDTO.Complaints,
+                        Treatment = inspectionCreateDTO.Treatment,
+                        Conclusion = inspectionCreateDTO.Conclusion,
+                        NextVisitDate = inspectionCreateDTO.NextVisitDate,
+                        PatientId = patientId,
+                        DoctorId = doctor.Id,
+                        CreateTime = DateTime.UtcNow
+                    };
+                    await _dbContext.Inspections.AddAsync(inspection);
+                    await _dbContext.SaveChangesAsync();
+                    patient.Inspection.Add(inspection);
+                    doctor.Inspection.Add(inspection);
+                    inspection.BaseInspectionId = inspection.Id;
+                    await _dbContext.SaveChangesAsync();
+                }
+                else if (inspectionCreateDTO.Conclusion == Conclusion.Death)
+                {
+                    inspection = new Inspection
+                    {
+                        Anamnesis = inspectionCreateDTO.Anamesis,
+                        Complaints = inspectionCreateDTO.Complaints,
+                        Treatment = inspectionCreateDTO.Treatment,
+                        Conclusion = inspectionCreateDTO.Conclusion,
+                        DeathDate = inspectionCreateDTO.DeathDate,
+                        PatientId = patientId,
+                        DoctorId = doctor.Id,
+                        CreateTime = DateTime.UtcNow
+                    };
+                    await _dbContext.Inspections.AddAsync(inspection);
+                    await _dbContext.SaveChangesAsync();
+                    patient.Inspection.Add(inspection);
+                    doctor.Inspection.Add(inspection);
+                    inspection.BaseInspectionId = inspection.Id;
+                    await _dbContext.SaveChangesAsync();
+                }
+                else if (inspectionCreateDTO.Conclusion == Conclusion.Recovery)
+                {
+                    inspection = new Inspection
+                    {
+                        Anamnesis = inspectionCreateDTO.Anamesis,
+                        Complaints = inspectionCreateDTO.Complaints,
+                        Treatment = inspectionCreateDTO.Treatment,
+                        Conclusion = inspectionCreateDTO.Conclusion,
+                        PatientId = patientId,
+                        DoctorId = doctor.Id,
+                        CreateTime = DateTime.UtcNow
+                    };
+                    await _dbContext.Inspections.AddAsync(inspection);
+                    await _dbContext.SaveChangesAsync();
+                    patient.Inspection.Add(inspection);
+                    doctor.Inspection.Add(inspection);
+                    inspection.BaseInspectionId = inspection.Id;
+                    await _dbContext.SaveChangesAsync();
+                }
             }
 
-            if (inspectionCreateDTO.PreviousInspectionId.HasValue)
+            else
             {
-                inspection.PreviousInspectionId = inspectionCreateDTO.PreviousInspectionId;
+                foreach (var inspect in allInspections)
+                {
+                    if ((inspect.PreviousInspectionId != null /*&& inspect.NextVisitDate.Value.Date == inspectionCreateDTO.Date*/
+                        && inspect.Id == inspectionCreateDTO.PreviousInspectionId) || (inspect.BaseInspectionId != null
+                        /*&& inspect.NextVisitDate.Value.Date == inspectionCreateDTO.Date*/ && inspect.Id == inspectionCreateDTO.PreviousInspectionId))
+                    {
+                        if (inspectionCreateDTO.Conclusion == Conclusion.Disease)
+                        {
+                            inspection = new Inspection
+                            {
+                                Anamnesis = inspectionCreateDTO.Anamesis,
+                                Complaints = inspectionCreateDTO.Complaints,
+                                Treatment = inspectionCreateDTO.Treatment,
+                                Conclusion = inspectionCreateDTO.Conclusion,
+                                NextVisitDate = inspectionCreateDTO.NextVisitDate,
+                                PreviousInspectionId = inspect.Id,
+                                PatientId = patientId,
+                                DoctorId = doctor.Id,
+                                CreateTime = DateTime.UtcNow
+                            };
+                            await _dbContext.Inspections.AddAsync(inspection);
+                            await _dbContext.SaveChangesAsync();
+                            patient.Inspection.Add(inspection);
+                            doctor.Inspection.Add(inspection);
+                            break;
+                        }
+                        else if (inspectionCreateDTO.Conclusion == Conclusion.Death)
+                        {
+                            inspection = new Inspection
+                            {
+                                Anamnesis = inspectionCreateDTO.Anamesis,
+                                Complaints = inspectionCreateDTO.Complaints,
+                                Treatment = inspectionCreateDTO.Treatment,
+                                Conclusion = inspectionCreateDTO.Conclusion,
+                                DeathDate = inspectionCreateDTO.DeathDate,  // по-сути можно проверять если нет даты смерти то ставить равной дате приема но это bruh
+                                PreviousInspectionId = inspect.Id,
+                                PatientId = patientId,
+                                DoctorId = doctor.Id,
+                                CreateTime = DateTime.UtcNow
+                            };
+                            await _dbContext.Inspections.AddAsync(inspection);
+                            await _dbContext.SaveChangesAsync();
+                            patient.Inspection.Add(inspection);
+                            doctor.Inspection.Add(inspection);
+                            break;
+                        }
+                        else if (inspectionCreateDTO.Conclusion == Conclusion.Recovery)
+                        {
+                            inspection = new Inspection
+                            {
+                                Anamnesis = inspectionCreateDTO.Anamesis,
+                                Complaints = inspectionCreateDTO.Complaints,
+                                Treatment = inspectionCreateDTO.Treatment,
+                                Conclusion = inspectionCreateDTO.Conclusion,
+                                PreviousInspectionId = inspect.Id,
+                                PatientId = patientId,
+                                DoctorId = doctor.Id,
+                                CreateTime = DateTime.UtcNow
+                            };
+                            await _dbContext.Inspections.AddAsync(inspection);
+                            await _dbContext.SaveChangesAsync();
+                            patient.Inspection.Add(inspection);
+                            doctor.Inspection.Add(inspection);
+                            break;
+                        }
+                    }
+                }
+                if (inspectionCreateDTO.Conclusion != Conclusion.Death && inspectionCreateDTO.Conclusion != Conclusion.Recovery)
+                {
+                    inspection = new Inspection
+                    {
+                        Anamnesis = inspectionCreateDTO.Anamesis,
+                        Complaints = inspectionCreateDTO.Complaints,
+                        Treatment = inspectionCreateDTO.Treatment,
+                        Conclusion = inspectionCreateDTO.Conclusion,
+                        NextVisitDate = inspectionCreateDTO.NextVisitDate,
+                        PatientId = patientId,
+                        DoctorId = doctor.Id,
+                        CreateTime = DateTime.UtcNow
+                    };
+                    await _dbContext.Inspections.AddAsync(inspection);
+                    await _dbContext.SaveChangesAsync();
+                    patient.Inspection.Add(inspection);
+                    doctor.Inspection.Add(inspection);
+                    inspection.BaseInspectionId = inspection.Id;
+                    await _dbContext.SaveChangesAsync();
+                }
+                else if (inspectionCreateDTO.Conclusion == Conclusion.Death)
+                {
+                    inspection = new Inspection
+                    {
+                        Anamnesis = inspectionCreateDTO.Anamesis,
+                        Complaints = inspectionCreateDTO.Complaints,
+                        Treatment = inspectionCreateDTO.Treatment,
+                        Conclusion = inspectionCreateDTO.Conclusion,
+                        DeathDate = inspectionCreateDTO.DeathDate,  // по-сути можно проверять если нет даты смерти то ставить равной дате приема но это bruh
+                        PatientId = patientId,
+                        DoctorId = doctor.Id,
+                        CreateTime = DateTime.UtcNow
+                    };
+                    await _dbContext.Inspections.AddAsync(inspection);
+                    await _dbContext.SaveChangesAsync();
+                    patient.Inspection.Add(inspection);
+                    doctor.Inspection.Add(inspection);
+                    inspection.BaseInspectionId = inspection.Id;
+                    await _dbContext.SaveChangesAsync();
+                }
+                else if (inspectionCreateDTO.Conclusion == Conclusion.Recovery)
+                {
+                    inspection = new Inspection
+                    {
+                        Anamnesis = inspectionCreateDTO.Anamesis,
+                        Complaints = inspectionCreateDTO.Complaints,
+                        Treatment = inspectionCreateDTO.Treatment,
+                        Conclusion = inspectionCreateDTO.Conclusion,
+                        PatientId = patientId,
+                        DoctorId = doctor.Id,
+                        CreateTime = DateTime.UtcNow
+                    };
+                    await _dbContext.Inspections.AddAsync(inspection);
+                    await _dbContext.SaveChangesAsync();
+                    patient.Inspection.Add(inspection);
+                    doctor.Inspection.Add(inspection);
+                    inspection.BaseInspectionId = inspection.Id;
+                    await _dbContext.SaveChangesAsync();
+                }
             }
-
-            await _dbContext.Inspections.AddAsync(inspection);
-            await _dbContext.SaveChangesAsync();
-            patient.Inspection.Add(inspection);
-            doctor.Inspection.Add(inspection);
 
             if (inspectionCreateDTO.Consultations != null && inspectionCreateDTO.Consultations.Any())
             {

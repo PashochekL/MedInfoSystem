@@ -43,7 +43,7 @@ namespace MedInfoSystem.Controllers
 
             if (authHeader != null && authHeader.StartsWith("Bearer "))
             {
-                var inspectionId = await _patientService.AddInspectionForpatient(id, inspectionCreateDTO);
+                var inspectionId = await _patientService.AddInspectionForPatient(id, inspectionCreateDTO);
 
                 return Ok(new { inspectionId });
             }

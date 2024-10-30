@@ -16,6 +16,21 @@ namespace MedInfoSystem.Controllers
             _InspectionService = inspectionService;
         }
 
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetFullInfAboutInspection(Guid id)
+        {
+            var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
+
+            if (doctorIdClaim != null)
+            {
+                var inspection = await _InspectionService.GetFullInfInspection(id);
+
+                return Ok( new {inspection});
+            }
+            return Unauthorized("User is not authorized");
+        }
+
         [HttpPut("{id}")]
         [Authorize]
         public async Task<IActionResult> EditInspection(Guid id, [FromBody] InspectionEditModelDTO inspectionEditModelDTO)
