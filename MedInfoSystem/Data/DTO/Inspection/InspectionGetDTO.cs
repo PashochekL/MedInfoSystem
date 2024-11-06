@@ -12,6 +12,7 @@ namespace MedInfoSystem.Data.DTO.Inspection
         public Guid Id { get; set; }
 
         public DateTime CreateTime { get; set; }
+        public DateTime Date { get; set; }
 
         public string Anamnesis { get; set; }
 
@@ -22,8 +23,6 @@ namespace MedInfoSystem.Data.DTO.Inspection
         public Conclusion Conclusion { get; set; }
 
         public DateTime? NextVisitDate { get; set; }
-
-        public DateTime? LastVisitDate { get; set; }
 
         public DateTime? DeathDate { get; set; }
 

@@ -5,7 +5,7 @@ namespace MedInfoSystem.Data.DTO.ICD
 {
     public class ICDRecordsDTO
     {
-        public IEnumerable<ICDRecordModelDTO> Records { get; set; }
+        public IEnumerable<ICDRecordModelDTO>? Records { get; set; }
         public Pagination Pagination { get; set; }
     }
 }

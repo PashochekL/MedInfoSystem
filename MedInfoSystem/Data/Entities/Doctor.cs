@@ -21,6 +21,8 @@ namespace MedInfoSystem.Data.Entities
         public DateTime CreateTime { get; set; }
         public string Password { get; set; }
 
+        public List<Comment> comments { get; set; } = new List<Comment>();
+
         public List<Inspection> Inspection { get; set; } = new List<Inspection>();
 
         public Guid SpecialityId { get; set; }

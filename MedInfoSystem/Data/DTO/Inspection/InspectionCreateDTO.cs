@@ -7,6 +7,7 @@ namespace MedInfoSystem.Data.DTO.Inspection
 {
     public class InspectionCreateDTO
     {
+        [Required]
         public DateTime Date { get; set; }
         [Required]
         [StringLength(5000, MinimumLength = 1)]

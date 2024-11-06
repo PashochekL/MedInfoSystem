@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Data.DTO.Consultations;
+using MedInfoSystem.Data.DTO.Comment;
 
 namespace MedInfoSystem.Controllers
 {
@@ -31,6 +32,24 @@ namespace MedInfoSystem.Controllers
                 return Ok(new { consultation });
             }
 
+            return Unauthorized("User is not authorized");
+        }
+
+        [HttpPost("{id}/comment")]
+        [Authorize]
+        public async Task<IActionResult> AddNewComment(Guid id, [FromBody] CommentCreateDTO commentCreateDTO)
+        {
+            var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
+
+            if (doctorIdClaim != null)
+            {
+                if (Guid.TryParse(doctorIdClaim.Value, out Guid doctorId))
+                {
+                    var commentId = await _consultationService.AddComment(id, doctorId, commentCreateDTO);
+
+                    return Ok(new { commentId });
+                }
+            }
             return Unauthorized("User is not authorized");
         }
 

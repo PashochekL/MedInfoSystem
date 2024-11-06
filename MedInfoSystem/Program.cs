@@ -3,6 +3,7 @@ using MedInfoSystem.Data;
 using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Services;
 using MedInfoSystem.Services.IServices;
+using MedInfoSystem.Services.MiddleWare;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -100,12 +101,15 @@ builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IDictionaryService, DictionaryService>();
 builder.Services.AddScoped<IConsultationService, ConsultationService>();
 builder.Services.AddScoped<IInspectionService, InspectionService>();
+builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<TokenBlacklistService>();
 builder.Services.AddScoped<CsvDataLoaderService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 
 var app = builder.Build();
+
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 var key = new byte[32];
 using (var rng = RandomNumberGenerator.Create())

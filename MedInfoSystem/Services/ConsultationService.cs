@@ -2,6 +2,7 @@
 using MedInfoSystem.Data.DTO.Comment;
 using MedInfoSystem.Data.DTO.Consultations;
 using MedInfoSystem.Data.DTO.Speciality;
+using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +22,8 @@ namespace MedInfoSystem.Services
             var consultation = await _dbContext.Consultations
                 .Include(c => c.Speciality)
                 .Include(c => c.RootComment)
-                .ThenInclude(comment => comment.Author)
+                    .ThenInclude(comment => comment.Author)
+                        .ThenInclude(author => author.speciality)
                 .FirstOrDefaultAsync(i => i.Id == consultationId);
 
             if (consultation == null)
@@ -57,6 +59,36 @@ namespace MedInfoSystem.Services
                 Comments = commentDTOs
             };
             return consultationGetModelDTO;
+        }
+
+        public async Task<Guid> AddComment(Guid consultationId, Guid doctorId, CommentCreateDTO commentCreateDTO)
+        {
+            var consultation = await _dbContext.Consultations.Include(c => c.RootComment).FirstOrDefaultAsync(i => i.Id == consultationId);
+            var doctor = await _dbContext.Doctors.FirstOrDefaultAsync(i => i.Id ==  doctorId);
+
+            if (consultation == null)
+            {
+                throw new Exception("Consultation not found");
+            }
+
+            Comment comment = new Comment()
+            {
+                ParentId = commentCreateDTO.ParentId,
+                Content = commentCreateDTO.Content,
+                AuthorId = doctor.Id,
+                Author = doctor,
+                CreateTime = DateTime.UtcNow
+            };
+
+            await _dbContext.Comments.AddAsync(comment);
+            await _dbContext.SaveChangesAsync();
+
+            consultation.RootComment.Add(comment);
+            consultation.CommentsNumber++;
+
+            await _dbContext.SaveChangesAsync();
+
+            return comment.ID;
         }
 
         public async Task EditComment(Guid commentId, ConsultationEditCommentDTO consultationEditCommentDTO)

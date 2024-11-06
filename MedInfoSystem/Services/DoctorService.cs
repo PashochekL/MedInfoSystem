@@ -12,11 +12,13 @@ namespace MedInfoSystem.Services
     {
         private readonly AppDBContext _dbContext;
         private readonly TokenService _tokenService;
+        private readonly PasswordService _passwordService;
 
-        public DoctorService(AppDBContext dbContext, TokenService tokenService)
+        public DoctorService(AppDBContext dbContext, TokenService tokenService, PasswordService passwordService)
         {
             _dbContext = dbContext;
             _tokenService = tokenService;
+            _passwordService = passwordService;
         }
 
         public async Task<string> AddDoctor(DoctorRegisterDTO doctorRegisterDTO)
@@ -35,7 +37,7 @@ namespace MedInfoSystem.Services
                 Gender = doctorRegisterDTO.Gender,
                 Phone = doctorRegisterDTO.Phone,
                 SpecialityId = doctorRegisterDTO.SpecialityId,
-                Password = doctorRegisterDTO.Password,
+                Password = await _passwordService.HashPassword(doctorRegisterDTO.Password),
                 CreateTime = DateTime.UtcNow
             };
             _dbContext.Add(doctor);
@@ -52,18 +54,28 @@ namespace MedInfoSystem.Services
                 throw new BadHttpRequestException("Empty request field");
             }
 
-            var doctor = await _dbContext.Doctors.FirstOrDefaultAsync(d => d.Email == doctorLoginDTO.Email 
-                                                                    && d.Password == doctorLoginDTO.Password);
+            var doctors = await _dbContext.Doctors.Where(i => i.Email == doctorLoginDTO.Email).ToListAsync();
 
-            if (doctor == null)
+            if (doctors.Count == 0)
             {
-                throw new Exception("Doctor not found");
+                throw new Exception("Invalid email");
             }
 
-            var doctorId = doctor.Id;
-            string token = _tokenService.GenerateToken(doctorId);
 
-            return token;
+            foreach (var newDoctor in doctors)
+            {
+                bool checker = await _passwordService.VerifyHashedPassword(newDoctor.Password, doctorLoginDTO.Password);
+
+                if (checker)
+                {
+                    var doctorId = newDoctor.Id;
+                    string token = _tokenService.GenerateToken(doctorId);
+
+                    return token;
+                }
+            }
+
+            throw new Exception("Invalid password");
         }
 
         public async Task<DoctorModelDTO> GetProfile(Guid doctorId)

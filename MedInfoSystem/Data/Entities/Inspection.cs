@@ -18,13 +18,12 @@ namespace MedInfoSystem.Data.Entities
 
         public DateTime? NextVisitDate { get; set; }
 
-        public DateTime? LastVisitDate { get; set; } //??????????????????????????????????
-
         public DateTime? DeathDate { get; set; }
 
         public Guid? BaseInspectionId { get; set; }
 
         public Guid? PreviousInspectionId { get; set; }
+        public DateTime Date {  get; set; }
 
         public Guid PatientId { get; set; }
         public Patient Patient { get; set; }

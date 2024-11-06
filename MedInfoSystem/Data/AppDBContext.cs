@@ -45,6 +45,12 @@ namespace MedInfoSystem.Data
                 .Property(d => d.Conclusion)
                 .HasConversion<string>();
 
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.Consultation)
+                .WithMany(c => c.RootComment)
+                .HasForeignKey(c => c.ConsultationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Speciality>().HasData(
                 new Speciality { Id = Guid.NewGuid(), Name = "Акушер-гинеколог", CreateTime = DateTime.UtcNow },
                 new Speciality { Id = Guid.NewGuid(), Name = "Анестезиолог-реаниматолог", CreateTime = DateTime.UtcNow },

@@ -49,10 +49,37 @@ namespace MedInfoSystem.Services
                         CreateTime = DateTime.UtcNow
                     }).ToList();
 
+                    foreach (var rootEntity in entities.Where(e => e.ParentId == null/* && IsLatinCode(e.CodeICD)*/))
+                    {
+                        var childEntities = entities
+                            .Where(e => e.ParentId == rootEntity.UniqueIdentifier)
+                            .OrderBy(e => e.CodeICD)
+                            .ToList();
+
+                        if (childEntities.Any())
+                        {
+                            var minCode = childEntities.First().CodeICD;
+                            var maxCode = childEntities.Last().CodeICD;
+
+                            rootEntity.CodeICD = $"{minCode}-{maxCode}";
+                        }
+                    }
+
                     await _dbContext.ICDs.AddRangeAsync(entities);
                     await _dbContext.SaveChangesAsync();
                 }
             }
+        }
+
+        private bool IsLatinCode(string code)
+        {
+            var latinCodes = new HashSet<string>
+            {
+                "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", 
+                "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII"
+            };
+
+            return latinCodes.Contains(code);
         }
     }
 }

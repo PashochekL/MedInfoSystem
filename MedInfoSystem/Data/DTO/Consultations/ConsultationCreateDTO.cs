@@ -7,6 +7,6 @@ namespace MedInfoSystem.Data.DTO.Consultations
     {
         [Required]
         public Guid SpecialityId { get; set; }
-        public List<InspectionCommentCreateDTO>? Comment { get; set; }
+        public List<InspectionCommentCreateDTO>? newComment { get; set; }
     }
 }

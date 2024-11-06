@@ -116,20 +116,37 @@ namespace MedInfoSystem.Services
 
         public async Task<List<ICDRecordModelDTO>> GetICDRoots()
         {
-            var list = await _dbContext.ICDs.Where(i => i.ParentId == null)
-            .Select(i => new ICDRecordModelDTO
+            var latinCodes = new HashSet<string>
             {
-                Id = i.Id,
-                CreateTime = i.CreateTime,
-                Code = i.CodeICD,
-                Name = i.Name
-            }).ToListAsync();
-            return list;
-        }
+                "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+                "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX",
+                "XX", "XXI", "XXII"
+            };
 
-        public bool ContainsDigit(string input)
-        {
-            return Regex.IsMatch(input, @"\d");
+            var addedCodes = new HashSet<string>();
+            var result = new List<ICDRecordModelDTO>();
+
+            var rootEntities = await _dbContext.ICDs
+                .Where(i => i.ParentId == null && latinCodes.Contains(i.CodeICD))
+                .ToListAsync();
+
+            foreach (var entity in rootEntities)
+            {
+                if (!addedCodes.Contains(entity.CodeICD))
+                {
+                    result.Add(new ICDRecordModelDTO
+                    {
+                        Id = entity.Id,
+                        CreateTime = entity.CreateTime,
+                        Code = entity.CodeICD,
+                        Name = entity.Name
+                    });
+
+                    addedCodes.Add(entity.CodeICD);
+                }
+            }
+
+            return result;
         }
     }
 }
