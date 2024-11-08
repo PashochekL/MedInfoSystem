@@ -19,6 +19,25 @@ namespace MedInfoSystem.Controllers
             _consultationService = consultationService;
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetListInspectionsForConsultation(bool? groopedFlag, [FromQuery] List<string> icdRoots, int page = 1, int size = 5)
+        {
+            var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
+
+            if (doctorIdClaim != null)
+            {
+
+                if (Guid.TryParse(doctorIdClaim.Value, out Guid doctorId))
+                {
+                    var listInspection = await _consultationService.GetListInspections(doctorId, groopedFlag, icdRoots, page, size);
+
+                    return Ok(listInspection);
+                }
+            }
+            return Unauthorized("User is not authorized");
+        }
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetConsultation(Guid id)
@@ -61,9 +80,12 @@ namespace MedInfoSystem.Controllers
 
             if (doctorIdClaim != null)
             {
-                await _consultationService.EditComment(id, consultationEditCommentDTO);
+                if (Guid.TryParse(doctorIdClaim.Value, out Guid doctorId))
+                {
+                    await _consultationService.EditComment(doctorId, id, consultationEditCommentDTO);
 
-                return StatusCode(200, "Profile edit success");
+                    return StatusCode(200, "Profile edit success");
+                }
             }
 
             return Unauthorized("User is not authorized");

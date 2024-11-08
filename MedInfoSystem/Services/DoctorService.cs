@@ -3,6 +3,7 @@ using MedInfoSystem.Data;
 using MedInfoSystem.Data.DTO.Doctor;
 using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Data.Entities.Enums;
+using MedInfoSystem.Services.Exceptions;
 using MedInfoSystem.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,7 +59,7 @@ namespace MedInfoSystem.Services
 
             if (doctors.Count == 0)
             {
-                throw new Exception("Invalid email");
+                throw new BadHttpRequestException("Invalid email");
             }
 
 
@@ -75,12 +76,17 @@ namespace MedInfoSystem.Services
                 }
             }
 
-            throw new Exception("Invalid password");
+            throw new BadHttpRequestException("Invalid password");
         }
 
         public async Task<DoctorModelDTO> GetProfile(Guid doctorId)
         {
             var doctor = await _dbContext.Doctors.FindAsync(doctorId);
+
+            if (doctor == null)
+            {
+                throw new NotFoundException("Doctor not found");
+            }
 
             DoctorModelDTO doctorModelDTO = new DoctorModelDTO()
             {
@@ -102,7 +108,12 @@ namespace MedInfoSystem.Services
 
             if (doctor == null)
             {
-                throw new Exception("Doctor not found");
+                throw new NotFoundException("Doctor not found");
+            }
+
+            if (doctorEditDTO == null)
+            {
+                throw new BadHttpRequestException("Empty request field");
             }
 
             doctor.Email = doctorEditDTO.Email;

@@ -5,7 +5,9 @@ using MedInfoSystem.Data.DTO.Patient;
 using MedInfoSystem.Data.DTO.Speciality;
 using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Data.Entities.Enums;
+using MedInfoSystem.Services.Exceptions;
 using MedInfoSystem.Services.IServices;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
@@ -40,6 +42,236 @@ namespace MedInfoSystem.Services
             return patient.Id;
         }
 
+        public async Task<PatientPageListDTO> GetPatientsList(Guid doctorId, string? name, [FromQuery] List<Conclusion>? conclusions,
+            Sorting? sorting = null, bool? scheduledVisits = false, bool? onlyMine = false, int page = 1, int size = 5)
+        {
+            List<Patient> patients = await _dbContext.Patients.Include(p => p.Inspection).ToListAsync();
+
+            var allInspections = await _dbContext.Inspections.ToListAsync();
+
+            if (!patients.Any())
+            {
+                throw new NotFoundException("No patients in database");
+            }
+
+            if (scheduledVisits == true && onlyMine == true)
+            {
+                throw new BadHttpRequestException("Invalid arguments for filtration/pagination/sorting");
+            }
+
+            var patientsDictionary = patients.ToDictionary(p => p.Id);
+
+            List<Patient> newPatients = patients;
+
+            if (conclusions.Count != 0)
+            {
+                var inspections = await _dbContext.Inspections.Include(i => i.Diagnoses)
+                    .Where(i => conclusions.Contains(i.Conclusion)).ToListAsync();
+
+                newPatients = inspections.Where(i => patientsDictionary.ContainsKey(i.PatientId))
+                                        .Select(i => patientsDictionary[i.PatientId]).Distinct().ToList();
+            }
+
+            var count = newPatients.Count;
+
+            List<PatientGetDTO> items = null;
+
+            items = newPatients.Skip((page - 1) * size).Take(size).
+                Select(i => new PatientGetDTO
+                {
+                    Id = i.Id,
+                    CreateTime = i.CreateTime,
+                    Birthday = i.Birthday,
+                    Gender = i.Gender,
+                    Name = i.Name
+
+                }).ToList();
+
+            if (!items.Any())
+            {
+                throw new BadHttpRequestException("Invalid value for attribute page");
+            }
+
+            List <PatientGetDTO> listPatients = null;
+
+            if (name == null)
+            {
+                listPatients = items;
+            }
+            else
+            {
+                listPatients = new List<PatientGetDTO>();
+
+                foreach (var item in items)
+                {
+                    bool contrains = item.Name.Contains(name);
+
+                    if (contrains)
+                    {
+                        listPatients.Add(item);
+                    }
+                }
+            }
+
+            if (scheduledVisits == true)
+            {
+                List<PatientGetDTO> newPationsList = new List<PatientGetDTO>();
+                foreach (var patient in listPatients)
+                {
+                    var inspectionsDates = await _dbContext.Inspections.Where(i => i.PatientId == patient.Id).Select(i => i.Date).ToListAsync();
+
+                    DateTimeOffset currentDateTime = DateTimeOffset.Now;
+
+                    bool hasFutureInspection = inspectionsDates.Any(date => date > currentDateTime);
+
+                    if (hasFutureInspection)
+                    {
+                        newPationsList.Add(patient);
+                    }
+                }
+
+                listPatients = newPationsList;
+            }
+
+            else if (scheduledVisits == false)
+            {
+                List<PatientGetDTO> newPationsList = new List<PatientGetDTO>();
+                foreach (var patient in listPatients)
+                {
+                    var inspectionsDates = await _dbContext.Inspections.Where(i => i.PatientId == patient.Id).Select(i => i.Date).ToListAsync();
+
+                    DateTimeOffset currentDateTime = DateTimeOffset.Now;
+
+                    bool hasPastInspection = inspectionsDates.Any(date => date < currentDateTime);
+
+                    if (hasPastInspection)
+                    {
+                        newPationsList.Add(patient);
+                    }
+                }
+
+                listPatients = newPationsList;
+            }
+
+            if (onlyMine == true)
+            {
+                var inspectionsDoneByDoctor = await _dbContext.Inspections.Where(i => i.DoctorId == doctorId).ToListAsync();
+
+                List<PatientGetDTO> newPationsList = new List<PatientGetDTO>();
+
+                foreach (var patient in listPatients)
+                {
+                    var inspectionsDates = inspectionsDoneByDoctor.Where(i => i.PatientId == patient.Id).Select(i => i.Date).ToList();
+
+                    DateTimeOffset currentDateTime = DateTimeOffset.Now;
+
+                    bool hasPastInspection = inspectionsDates.Any(date => date < currentDateTime);
+
+                    if (hasPastInspection)
+                    {
+                        newPationsList.Add(patient);
+                    }
+                }
+
+                listPatients = newPationsList;
+            }
+
+            else if (onlyMine == false)
+            {
+                var inspectionsDoneByDoctor = await _dbContext.Inspections.Where(i => i.DoctorId != doctorId).ToListAsync();
+
+                List<PatientGetDTO> newPationsList = new List<PatientGetDTO>();
+
+                foreach (var patient in listPatients)
+                {
+                    var inspectionsDates = inspectionsDoneByDoctor.Where(i => i.PatientId == patient.Id).Select(i => i.Date).ToList();
+
+                    DateTimeOffset currentDateTime = DateTimeOffset.Now;
+
+                    bool hasPastInspection = inspectionsDates.Any(date => date < currentDateTime);
+
+                    if (hasPastInspection)
+                    {
+                        newPationsList.Add(patient);
+                    }
+                }
+
+                listPatients = newPationsList;
+            }
+
+            if (sorting != null)
+            {
+                if (sorting == Sorting.NameAsc)
+                {
+                    listPatients = listPatients.OrderBy(p => p.Name).ToList();
+                }
+                else if (sorting == Sorting.NameDesc)
+                {
+                    listPatients = listPatients.OrderByDescending(p => p.Name).ToList();
+                }
+                else if (sorting == Sorting.CreateAsc)
+                {
+                    listPatients = listPatients.OrderBy(p => p.CreateTime).ToList();
+                }
+                else if (sorting == Sorting.CreateDesc)
+                {
+                    listPatients = listPatients.OrderByDescending(p => p.CreateTime).ToList();
+                }
+                else if (sorting == Sorting.InspectionAsc)
+                {
+                    var patientLastDateList = listPatients.Select(p => new PatientLastDateDTO
+                    {
+                        PatientId = p.Id,
+                        Date = allInspections.Where(i => i.PatientId == p.Id).OrderBy(i => i.Date).Select(i => i.Date).FirstOrDefault()
+
+                    }).ToList();
+
+                    patientLastDateList = patientLastDateList.OrderBy(p => p.Date).ToList();
+
+                    listPatients = patientLastDateList
+                        .Select(p => new PatientGetDTO
+                        {
+                            Id = p.PatientId,
+                            Name = patientsDictionary.ContainsKey(p.PatientId) ? patientsDictionary[p.PatientId].Name : null,
+                            CreateTime = patientsDictionary.ContainsKey(p.PatientId) ? patientsDictionary[p.PatientId].CreateTime : default(DateTime),
+                            Birthday = patientsDictionary.ContainsKey(p.PatientId) ? patientsDictionary[p.PatientId].Birthday : default(DateTime),
+                            Gender = patientsDictionary.ContainsKey(p.PatientId) ? patientsDictionary[p.PatientId].Gender : default
+
+                        }).ToList();
+                }
+                else
+                {
+                    var patientLastDateList = listPatients.Select(p => new PatientLastDateDTO
+                    {
+                        PatientId = p.Id,
+                        Date = allInspections.Where(i => i.PatientId == p.Id).OrderByDescending(i => i.Date).Select(i => i.Date).FirstOrDefault()
+
+                    }).ToList();
+
+                    patientLastDateList = patientLastDateList.OrderByDescending(p => p.Date).ToList();
+
+                    listPatients = patientLastDateList
+                        .Select(p => new PatientGetDTO
+                        {
+                            Id = p.PatientId,
+                            Name = patientsDictionary.ContainsKey(p.PatientId) ? patientsDictionary[p.PatientId].Name : null,
+                            CreateTime = patientsDictionary.ContainsKey(p.PatientId) ? patientsDictionary[p.PatientId].CreateTime : default(DateTime),
+                            Birthday = patientsDictionary.ContainsKey(p.PatientId) ? patientsDictionary[p.PatientId].Birthday : default(DateTime),
+                            Gender = patientsDictionary.ContainsKey(p.PatientId) ? patientsDictionary[p.PatientId].Gender : default
+
+                        }).ToList();
+                }
+            }
+
+            Pagination pagination = new Pagination(count, page, size);
+            PatientPageListDTO inspectionPageListDTO = new PatientPageListDTO
+            {
+                Pagination = pagination,
+                Patients = listPatients
+            };
+            return inspectionPageListDTO;
+        }
+
         public async Task<Guid> AddInspectionForPatient(Guid patientId, InspectionCreateDTO inspectionCreateDTO)
         {
             var allInspections = await _dbContext.Inspections.Where(i => i.PatientId == patientId).ToListAsync();
@@ -60,7 +292,7 @@ namespace MedInfoSystem.Services
 
             if (doctor == null)
             {
-                throw new BadHttpRequestException("Doctor with the specified speciality not found.");
+                throw new BadHttpRequestException("Doctor with the specified speciality not found");
             }
 
             Inspection inspection = null;
@@ -320,7 +552,7 @@ namespace MedInfoSystem.Services
 
                     if (icd == null)
                     {
-                        throw new BadHttpRequestException("Doctor with the specified speciality not found.");
+                        throw new BadHttpRequestException("Doctor with the specified speciality not found");
                     }
 
                     Diagnosis diagnosis = new Diagnosis
@@ -347,12 +579,12 @@ namespace MedInfoSystem.Services
 
             if (!inspections.Any())
             {
-                throw new Exception("Patient not found"); // заменить ошибку на свою самописную, чтобы сообщало об отсутствии у пациента осмотров.
+                throw new NotFoundException("Patient not found");
             }
 
             if (icdRoots != null && icdRoots.Count != 0)
             {
-                List<string> icdCodes = await _dbContext.Set<ICD>().Where(icd => icdRoots
+                List<string> icdCodes = await _dbContext.ICDs.Where(icd => icdRoots
                                 .Contains(icd.Id.ToString())).Select(icd => icd.CodeICD).ToListAsync();
                 if (icdCodes != null)
                 {
@@ -453,13 +685,16 @@ namespace MedInfoSystem.Services
                 }).ToListAsync();
             }
 
-            List<InspectionPreviewDTO> inspectionPreviewDTO = items;
+            if (!items.Any())
+            {
+                throw new BadHttpRequestException("Invalid value for attribute page");
+            }
 
             Pagination pagination = new Pagination(count, page, size);
             InspectionPageListDTO inspectionPageListDTO = new InspectionPageListDTO
             {
                 Pagination = pagination,
-                inspection = inspectionPreviewDTO
+                Inspections = items
             };
             return inspectionPageListDTO;
         }
@@ -468,11 +703,9 @@ namespace MedInfoSystem.Services
         {
             var patient = await _dbContext.Patients.FindAsync(patientId);
 
-            Console.WriteLine(patient);
-
             if (patient == null)
             {
-                throw new Exception("Patient not found");
+                throw new NotFoundException("Patient not found");
             }
 
             PatientInfoDTO patientInfoDTO = new PatientInfoDTO()
@@ -493,7 +726,7 @@ namespace MedInfoSystem.Services
 
             if (inspections == null)
             {
-                throw new Exception("Patient not found");
+                throw new NotFoundException("Patient not found");
             }
 
             List<InspectionShortModelDTO> inspectionList = new List<InspectionShortModelDTO>();

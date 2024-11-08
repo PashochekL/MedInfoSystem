@@ -49,7 +49,7 @@ namespace MedInfoSystem.Controllers
 
                 await _tokenBlacklistService.RevokeTokenAsync(token);
 
-                return Ok("User logged out successfully.");
+                return Ok("Success");
             }
 
             return Unauthorized("User is not authorized");
@@ -67,11 +67,6 @@ namespace MedInfoSystem.Controllers
                 if (Guid.TryParse(doctorIdClaim.Value, out Guid doctorId))
                 {
                     DoctorModelDTO doctorModelDTO = await _service.GetProfile(doctorId);
-
-                    if (doctorModelDTO == null)
-                    {
-                        return NotFound("Doctor not found");
-                    }
 
                     return Ok(new { doctorModelDTO });
                 }

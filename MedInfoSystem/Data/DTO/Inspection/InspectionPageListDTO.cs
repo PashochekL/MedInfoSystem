@@ -5,7 +5,7 @@ namespace MedInfoSystem.Data.DTO.Inspection
 {
     public class InspectionPageListDTO
     {
-        public IEnumerable<InspectionPreviewDTO>? inspection { get; set; }
+        public IEnumerable<InspectionPreviewDTO>? Inspections { get; set; }
         public Pagination Pagination { get; set; }
     }
 }

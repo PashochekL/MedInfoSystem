@@ -26,7 +26,7 @@ namespace MedInfoSystem.Controllers
             {
                 var inspection = await _inspectionService.GetFullInfInspection(id);
 
-                return Ok( new {inspection});
+                return Ok( new {inspection, message = "Inspection found and successfully extracted" });
             }
             return Unauthorized("User is not authorized");
         }
@@ -39,9 +39,12 @@ namespace MedInfoSystem.Controllers
 
             if (doctorIdClaim != null)
             {
-                await _inspectionService.EditInspection(id, inspectionEditModelDTO);
+                if (Guid.TryParse(doctorIdClaim.Value, out Guid doctorId))
+                {
+                    await _inspectionService.EditInspection(doctorId, id, inspectionEditModelDTO);
 
-                return StatusCode(200, "Profile edit success");
+                    return StatusCode(200, "Success");
+                }
             }
             return Unauthorized("User is not authorized");
         }
@@ -54,9 +57,9 @@ namespace MedInfoSystem.Controllers
 
             if (doctorIdClaim != null)
             {
-                var inspection = await _inspectionService.GetRootInspection(id);
+                var inspections = await _inspectionService.GetRootInspection(id);
 
-                return Ok( new {inspection});
+                return Ok((inspections));
             }
             return Unauthorized("User is not authorized");
         }

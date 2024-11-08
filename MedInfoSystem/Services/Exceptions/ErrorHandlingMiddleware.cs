@@ -37,6 +37,10 @@ namespace MedInfoSystem.Services.MiddleWare
                 case AuthenticationException:
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     break;
+                case
+                    NotFoundUser:
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    break;
                 case NotFoundException:
                     context.Response.StatusCode = StatusCodes.Status404NotFound;
                     break;
@@ -45,7 +49,11 @@ namespace MedInfoSystem.Services.MiddleWare
                     break;
             }
 
-            var result = JsonSerializer.Serialize(new { error = ex.Message });
+            var result = JsonSerializer.Serialize(new
+            {
+                status = "Error",
+                message = ex.Message
+            });
 
             return context.Response.WriteAsync(result);
         }

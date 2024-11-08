@@ -11,6 +11,7 @@ using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using MedInfoSystem.Services.Exceptions;
 
 namespace MedInfoSystem.Services
 {
@@ -37,7 +38,7 @@ namespace MedInfoSystem.Services
 
             if (inspection == null)
             {
-                throw new Exception("Inspection not found");
+                throw new NotFoundException("Inspection not found");
             }
 
             var consultation = inspection.Consultations.Select(c => new ConsultationGetDTO
@@ -115,13 +116,18 @@ namespace MedInfoSystem.Services
             return inspectionGetDTO;
         }
 
-        public async Task EditInspection(Guid inspectionId, InspectionEditModelDTO inspectionEditModelDTO)
+        public async Task EditInspection(Guid doctorId, Guid inspectionId, InspectionEditModelDTO inspectionEditModelDTO)
         {
             var inspection = await _dbContext.Inspections.Include(i => i.Diagnoses).FirstOrDefaultAsync(i => i.Id == inspectionId);
 
             if (inspection == null)
             {
-                throw new Exception("Inspection not found");
+                throw new NotFoundException("Inspection not found");
+            }
+
+            if (inspection.DoctorId != doctorId)
+            {
+                throw new NotFoundUser("User doesn't have editing rights (not the inspection author)");
             }
 
             if (inspectionEditModelDTO.Conclusion == Conclusion.Disease)
@@ -150,7 +156,7 @@ namespace MedInfoSystem.Services
 
             var newDiagnoses = inspectionEditModelDTO.Diagnoses;
 
-            inspection.Diagnoses.RemoveAll(d => !newDiagnoses.Any(nd => nd.IcdDiagnosisId == d.InspectionId)); // перепроверить на 2+ диагноза записанных и приходящих в изменении
+            inspection.Diagnoses.RemoveAll(d => !newDiagnoses.Any(nd => nd.IcdDiagnosisId == d.InspectionId));
 
             foreach (var diagnoses in newDiagnoses)
             {
@@ -159,7 +165,7 @@ namespace MedInfoSystem.Services
 
                 if (icdCode == null)
                 {
-                    throw new Exception("Inspection not found");
+                    throw new NotFoundException("Inspection not found");
                 }
 
                 var oldDiagnoses = inspection.Diagnoses.FirstOrDefault(d => d.Code == icdCode[0]);
@@ -187,7 +193,7 @@ namespace MedInfoSystem.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<InspectionRootGetDTO> GetRootInspection(Guid inspectionId)
+        public async Task<List<InspectionRootGetDTO>> GetRootInspection(Guid inspectionId)
         {
             var inspections = await _dbContext.Inspections
                 .Include(i => i.Diagnoses)
@@ -195,32 +201,40 @@ namespace MedInfoSystem.Services
                 .Include(i => i.Patient)
                 .ToListAsync();
 
+            var checkInspect = await _dbContext.Inspections.Where(i => i.Id ==  inspectionId).ToListAsync();
+
             if (!inspections.Any())
             {
-                throw new Exception("Inspection not found");
+                throw new NotFoundException("Inspection not found");
             }
 
-            bool chain = false;
-            bool nested = false;
+            if (checkInspect.Any())
+            {
+                throw new NotFoundException("Inspection not found");
+            }
+
             DiagnosisGetDTO newDiagnosis;
-            InspectionRootGetDTO inspectionRootGetDTO = null;
+            List<InspectionRootGetDTO> inspectionRootGetDTO = new List<InspectionRootGetDTO>();
 
             foreach (var inspection in inspections)
             {
-                if (inspection.PreviousInspectionId == inspectionId)
-                {
-                    nested = true;
-                    break;
-                }
-            }
+                bool chain = false;
+                bool nested = false;
 
-            foreach (var inspection in inspections)
-            {
-                if (inspection.Id == inspectionId)
+                if (inspection.Id != inspectionId && inspection.BaseInspectionId == inspectionId)
                 {
                     if (inspection.Id == inspection.BaseInspectionId)
                     {
                         chain = true;
+                    }
+                    
+                    foreach (var inspect in inspections)
+                    {
+                        if (inspect.PreviousInspectionId == inspection.Id)
+                        {
+                            nested = true;
+                            break;
+                        }
                     }
 
                     var diagnoses = inspection.Diagnoses.ToList();
@@ -236,9 +250,9 @@ namespace MedInfoSystem.Services
                         Type = mainDiagnosis.Type
                     };
 
-                    inspectionRootGetDTO = new InspectionRootGetDTO
+                    var inspectionRoot = new InspectionRootGetDTO
                     {
-                        Id = inspectionId,
+                        Id = inspection.Id,
                         CreateTime = inspection.CreateTime,
                         Date = inspection.Date,
                         Conclusion = inspection.Conclusion,
@@ -251,7 +265,7 @@ namespace MedInfoSystem.Services
                         HasChain = chain,
                         HasNested = nested
                     };
-                    break;
+                    inspectionRootGetDTO.Add(inspectionRoot);
                 }
             }
 

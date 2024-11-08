@@ -22,7 +22,7 @@ namespace MedInfoSystem.Controllers
         }
 
         [HttpGet("speciality")]
-        public async Task<ActionResult<SpecialitiesDTO>> GetSpecialityList(string? name, int page, int size)
+        public async Task<ActionResult<SpecialitiesDTO>> GetSpecialityList(string? name, int page = 1, int size = 5)
         {
             var specialityList = await _service.GetSpecialityList(name, page, size);
 
@@ -30,7 +30,7 @@ namespace MedInfoSystem.Controllers
         }
 
         [HttpGet("icd10")]
-        public async Task<ActionResult<ICDRecordsDTO>> SearchDiagnoses(string? request, int page, int size)
+        public async Task<ActionResult<ICDRecordsDTO>> SearchDiagnoses(string? request, int page = 1, int size = 5)
         {
             var icdRoots = await _service.SearchDiagnosesICD(request, page, size);
 

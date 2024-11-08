@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Data.DTO.Inspection;
 using MedInfoSystem.Data.DTO.Consultations;
+using MedInfoSystem.Data.Entities.Enums;
 
 namespace MedInfoSystem.Controllers
 {
@@ -30,9 +31,28 @@ namespace MedInfoSystem.Controllers
             {
                 Guid patientId = await _patientService.AddPatient(patientCreateDTO);
 
-                return Ok(new { patientId });
+                return Ok(new { patientId, message = "Patient was registered" });
             }
         
+            return Unauthorized("User is not authorized");
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetPationsList(string? name, [FromQuery] List<Conclusion>? conclusions,
+            [FromQuery] Sorting? sorting = null, bool? scheduledVisits = false, bool? onlyMine = false, int page = 1, int size = 5)
+        {
+            var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
+
+            if (doctorIdClaim != null)
+            {
+                if (Guid.TryParse(doctorIdClaim.Value, out Guid doctorId))
+                {
+                    var parients = await _patientService.GetPatientsList(doctorId, name, conclusions, sorting, scheduledVisits, onlyMine, page, size);
+
+                    return Ok(parients);
+                }
+            }
             return Unauthorized("User is not authorized");
         }
 

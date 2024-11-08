@@ -109,8 +109,6 @@ builder.Services.AddScoped<IDoctorService, DoctorService>();
 
 var app = builder.Build();
 
-app.UseMiddleware<ErrorHandlingMiddleware>();
-
 var key = new byte[32];
 using (var rng = RandomNumberGenerator.Create())
 {
@@ -120,7 +118,12 @@ using (var rng = RandomNumberGenerator.Create())
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
+    app.UseMiddleware<ErrorHandlingMiddleware>();
+    //app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseMiddleware<ErrorHandlingMiddleware>(); // также добавьте для режима Production
 }
 
 

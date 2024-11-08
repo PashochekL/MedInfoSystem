@@ -36,6 +36,11 @@ namespace MedInfoSystem.Services
             })
             .ToListAsync();
 
+            if (!items.Any())
+            {
+                throw new BadHttpRequestException("Invalid value for attribute page");
+            }
+
             List<SpecialityDTO> listSpecialities;
 
             if (name ==  null)
@@ -81,6 +86,11 @@ namespace MedInfoSystem.Services
                 Name = s.Name
             })
             .ToListAsync();
+
+            if (!items.Any())
+            {
+                throw new BadHttpRequestException("Invalid value for attribute page");
+            }
 
             List<ICDRecordModelDTO> icdRecordModelDTO;
 
