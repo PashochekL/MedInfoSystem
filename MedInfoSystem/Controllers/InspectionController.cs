@@ -36,7 +36,7 @@ namespace MedInfoSystem.Controllers
             {
                 var inspection = await _inspectionService.GetFullInfInspection(id);
 
-                return Ok( new {inspection, message = "Inspection found and successfully extracted" });
+                return Ok( new {inspection} );
             }
             return Unauthorized("User is not authorized");
         }

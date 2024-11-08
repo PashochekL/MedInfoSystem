@@ -8,8 +8,8 @@ namespace MedInfoSystem.Services.IServices
     public interface IPatientService
     {
         public Task<Guid> AddPatient(PatientCreateDTO patientCreateDTO);
-        public Task<PatientPageListDTO> GetPatientsList(Guid doctorId, string? name, [FromQuery] List<Conclusion>? conclusions,
-            Sorting? sorting = null, bool? scheduledVisits = false, bool? onlyMine = false, int page = 1, int size = 5);
+        public Task<PatientPageListDTO> GetPatientsList(Guid doctorId, string? name, [FromQuery] List<Conclusion>? conclusions = null,
+            Sorting? sorting = null, bool? scheduledVisits = null, bool? onlyMine = null, int page = 1, int size = 5);
         public Task<Guid> AddInspectionForPatient(Guid patientId, InspectionCreateDTO inspectionCreateDTO);
         public Task<InspectionPageListDTO> GetPatientInspections(Guid patientId, bool? groopedFlag, List<string> icdRoots, int page, int size);
         public Task<PatientInfoDTO> GetPatientById(Guid patientId);

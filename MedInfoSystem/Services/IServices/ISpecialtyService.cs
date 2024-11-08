@@ -1,9 +1,10 @@
-﻿using MedInfoSystem.Data.Entities;
+﻿using MedInfoSystem.Data.DTO.Speciality;
+using MedInfoSystem.Data.Entities;
 
 namespace MedInfoSystem.Services.IServices
 {
     public interface ISpecialtyService
     {
-        public Task<IEnumerable<Speciality>> GetAllSpecialtiesAsync();
+        public Task<List<SpecialityGetDTO>> GetAllSpecialtiesAsync();
     }
 }

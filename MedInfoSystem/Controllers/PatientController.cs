@@ -60,8 +60,8 @@ namespace MedInfoSystem.Controllers
         /// <response code="500">Unauthorized</response>
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<PatientPageListDTO>> GetPationsList(string? name, [FromQuery] List<Conclusion>? conclusions,
-            [FromQuery] Sorting? sorting = null, bool? scheduledVisits = false, bool? onlyMine = false, int page = 1, int size = 5)
+        public async Task<ActionResult<PatientPageListDTO>> GetPationsList(string? name, [FromQuery] List<Conclusion>? conclusions = null,
+            [FromQuery] Sorting? sorting = null, bool? scheduledVisits = null, bool? onlyMine = null, int page = 1, int size = 5)
         {
             var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
 

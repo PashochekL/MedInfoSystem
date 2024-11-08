@@ -195,20 +195,20 @@ namespace MedInfoSystem.Services
 
         public async Task<List<InspectionRootGetDTO>> GetRootInspection(Guid inspectionId)
         {
+            var checkInspection = await _dbContext.Inspections.Where(i => i.Id == inspectionId).FirstAsync();
+
+            if (checkInspection.Id != checkInspection.BaseInspectionId)
+            {
+                throw new NotFoundException("Inspection is not root");
+            }
+
             var inspections = await _dbContext.Inspections
                 .Include(i => i.Diagnoses)
                 .Include(i => i.Doctor)
                 .Include(i => i.Patient)
                 .ToListAsync();
 
-            var checkInspect = await _dbContext.Inspections.Where(i => i.Id ==  inspectionId).ToListAsync();
-
             if (!inspections.Any())
-            {
-                throw new NotFoundException("Inspection not found");
-            }
-
-            if (checkInspect.Any())
             {
                 throw new NotFoundException("Inspection not found");
             }

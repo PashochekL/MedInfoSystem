@@ -42,8 +42,8 @@ namespace MedInfoSystem.Services
             return patient.Id;
         }
 
-        public async Task<PatientPageListDTO> GetPatientsList(Guid doctorId, string? name, [FromQuery] List<Conclusion>? conclusions,
-            Sorting? sorting = null, bool? scheduledVisits = false, bool? onlyMine = false, int page = 1, int size = 5)
+        public async Task<PatientPageListDTO> GetPatientsList(Guid doctorId, string? name, [FromQuery] List<Conclusion>? conclusions = null,
+            Sorting? sorting = null, bool? scheduledVisits = null, bool? onlyMine = null, int page = 1, int size = 5)
         {
             List<Patient> patients = await _dbContext.Patients.Include(p => p.Inspection).ToListAsync();
 
@@ -63,7 +63,7 @@ namespace MedInfoSystem.Services
 
             List<Patient> newPatients = patients;
 
-            if (conclusions.Count != 0)
+            if (conclusions != null)
             {
                 var inspections = await _dbContext.Inspections.Include(i => i.Diagnoses)
                     .Where(i => conclusions.Contains(i.Conclusion)).ToListAsync();
@@ -86,6 +86,8 @@ namespace MedInfoSystem.Services
                     Name = i.Name
 
                 }).ToList();
+
+            Console.WriteLine($"Items after pagination: {items.Count}");
 
             if (!items.Any())
             {
@@ -113,9 +115,12 @@ namespace MedInfoSystem.Services
                 }
             }
 
+            Console.WriteLine($"Items before pagination: {listPatients.Count}");
+
             if (scheduledVisits == true)
             {
                 List<PatientGetDTO> newPationsList = new List<PatientGetDTO>();
+
                 foreach (var patient in listPatients)
                 {
                     var inspectionsDates = await _dbContext.Inspections.Where(i => i.PatientId == patient.Id).Select(i => i.Date).ToListAsync();
@@ -153,6 +158,8 @@ namespace MedInfoSystem.Services
                 listPatients = newPationsList;
             }
 
+            Console.WriteLine($"Items before pagination: {listPatients.Count}");
+
             if (onlyMine == true)
             {
                 var inspectionsDoneByDoctor = await _dbContext.Inspections.Where(i => i.DoctorId == doctorId).ToListAsync();
@@ -176,6 +183,7 @@ namespace MedInfoSystem.Services
                 listPatients = newPationsList;
             }
 
+
             else if (onlyMine == false)
             {
                 var inspectionsDoneByDoctor = await _dbContext.Inspections.Where(i => i.DoctorId != doctorId).ToListAsync();
@@ -198,6 +206,8 @@ namespace MedInfoSystem.Services
 
                 listPatients = newPationsList;
             }
+
+            Console.WriteLine($"Items before pagination: {listPatients.Count}");
 
             if (sorting != null)
             {
@@ -262,6 +272,8 @@ namespace MedInfoSystem.Services
                         }).ToList();
                 }
             }
+
+            Console.WriteLine($"Items before pagination: {listPatients.Count}");
 
             Pagination pagination = new Pagination(count, page, size);
             PatientPageListDTO inspectionPageListDTO = new PatientPageListDTO
