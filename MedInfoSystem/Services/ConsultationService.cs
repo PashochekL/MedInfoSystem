@@ -202,6 +202,11 @@ namespace MedInfoSystem.Services
                 throw new NotFoundException("Consultation not found");
             }
 
+            if (doctor.SpecialityId != consultation.SpecialityId)
+            {
+                throw new NotFoundUser("User doesn't have add comment to consultation");
+            }
+
             Comment comment = new Comment()
             {
                 ParentId = commentCreateDTO.ParentId,

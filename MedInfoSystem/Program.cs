@@ -10,10 +10,21 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAnyOrigin", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 builder.Logging.AddConsole();
 
@@ -94,6 +105,10 @@ builder.Services.AddSwaggerGen(c =>
         {securitySheme, new string[] {} }
     };
     c.AddSecurityRequirement(securiryRequirement);
+
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
 });
 
 builder.Services.AddControllers();
@@ -123,9 +138,10 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseMiddleware<ErrorHandlingMiddleware>(); // также добавьте для режима Production
+    app.UseMiddleware<ErrorHandlingMiddleware>();
 }
 
+app.UseCors("AllowAnyOrigin");
 
 app.UseHttpsRedirection();
 app.UseRouting();

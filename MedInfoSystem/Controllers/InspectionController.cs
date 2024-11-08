@@ -1,4 +1,6 @@
-﻿using MedInfoSystem.Data.DTO.Inspection;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using MedInfoSystem.Data.DTO.Inspection;
+using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Services.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,9 +18,17 @@ namespace MedInfoSystem.Controllers
             _inspectionService = inspectionService;
         }
 
+        /// <summary>
+        /// Get full information about specified inspection
+        /// </summary>
+        /// <param name="id">Inspection's identifier</param>
+        /// <response code="200">Inspection found and successfully extracted</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">Not Found</response>
+        /// <response code="500">InternalServerError</response>
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<IActionResult> GetFullInfAboutInspection(Guid id)
+        public async Task<ActionResult<InspectionGetDTO>> GetFullInfAboutInspection(Guid id)
         {
             var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
 
@@ -31,6 +41,16 @@ namespace MedInfoSystem.Controllers
             return Unauthorized("User is not authorized");
         }
 
+        /// <summary>
+        /// Edit concrete inspection
+        /// </summary>
+        /// <param name="id">Inspection's identifier</param>
+        /// <response code="200">Success</response>
+        /// <response code="400">Invalid arguments</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="403">User doesn't have editing rights (not the inspection author)</response>
+        /// <response code="404">Patient not found</response>
+        /// <response code="500">InternalServerError</response>
         [HttpPut("{id}")]
         [Authorize]
         public async Task<IActionResult> EditInspection(Guid id, [FromBody] InspectionEditModelDTO inspectionEditModelDTO)
@@ -49,9 +69,18 @@ namespace MedInfoSystem.Controllers
             return Unauthorized("User is not authorized");
         }
 
+        /// <summary>
+        /// Get medical inspection chain for root inspection
+        /// </summary>
+        /// <param name="id">Root inspection's identifier</param>
+        /// <response code="200">Success</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">Patient not found</response>
+        /// <response code="500">InternalServerError</response>
         [HttpGet("{id}/chain")]
         [Authorize]
-        public async Task<IActionResult> GetInspectionRoot(Guid id)
+        public async Task<ActionResult<InspectionRootGetDTO>> GetInspectionRoot(Guid id)
         {
             var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
 

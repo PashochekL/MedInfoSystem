@@ -7,6 +7,7 @@ using MedInfoSystem.Data.Entities;
 using MedInfoSystem.Data.DTO.Inspection;
 using MedInfoSystem.Data.DTO.Consultations;
 using MedInfoSystem.Data.Entities.Enums;
+using DocumentFormat.OpenXml.Math;
 
 namespace MedInfoSystem.Controllers
 {
@@ -21,6 +22,13 @@ namespace MedInfoSystem.Controllers
             _patientService = patientService;
         }
 
+        /// <summary>
+        /// Create new patient
+        /// </summary>
+        /// <response code="200">Patient was registered</response>
+        /// <response code="400">Invalid arguments</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="500">InternalServerError</response>
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> AddNewPatient([FromBody] PatientCreateDTO patientCreateDTO)
@@ -37,9 +45,22 @@ namespace MedInfoSystem.Controllers
             return Unauthorized("User is not authorized");
         }
 
+        /// <summary>
+        /// Get patient list
+        /// </summary>
+        /// <param name="name">part of the name for filtering</param>
+        /// <param name="conclusions">conclusion list to filter by conclusions</param>
+        /// <param name="sorting">option to sort patients</param>
+        /// <param name="scheduledVisits">show only scheduled visits</param>
+        /// <param name="page">page number</param>
+        /// <param name="size">required number of elements per page</param>
+        /// <response code="200">Patients paged list retrieved</response>
+        /// <response code="400">Invalid arguments for filtration/pagination/sorting</response>
+        /// <response code="401">Аuthorized</response>
+        /// <response code="500">Unauthorized</response>
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetPationsList(string? name, [FromQuery] List<Conclusion>? conclusions,
+        public async Task<ActionResult<PatientPageListDTO>> GetPationsList(string? name, [FromQuery] List<Conclusion>? conclusions,
             [FromQuery] Sorting? sorting = null, bool? scheduledVisits = false, bool? onlyMine = false, int page = 1, int size = 5)
         {
             var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
@@ -56,6 +77,14 @@ namespace MedInfoSystem.Controllers
             return Unauthorized("User is not authorized");
         }
 
+        /// <summary>
+        /// Create inspection for specified patient
+        /// </summary>
+        /// <param name="id">Patient's identifier</param>
+        /// <response code="200">Success</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="401">Аuthorized</response>
+        /// <response code="500">Unauthorized</response>
         [HttpPost("{id}/inspections")]
         [Authorize]
         public async Task<IActionResult> AddInspection([FromRoute] Guid id, [FromBody] InspectionCreateDTO inspectionCreateDTO)
@@ -72,9 +101,22 @@ namespace MedInfoSystem.Controllers
             return Unauthorized("User is not authorized");
         }
 
+        /// <summary>
+        /// Get a list of patient medical inspections
+        /// </summary>
+        /// <param name="id">Patient's identifier</param>
+        /// <param name="grouped">flag - whether grouping by inspection chain is required - for filtration</param>
+        /// <param name="icdRoots">root elements for ICD-10 - for filtration</param>
+        /// <param name="page">page number</param>
+        /// <param name="size">required number of elements per page</param>
+        /// <response code="200">Patients inspections list retrieved</response>
+        /// <response code="400">Invalid arguments for filtration/pagination/sorting</response>
+        /// <response code="401">Аuthorized</response>
+        /// <response code="404">Patient not found</response>
+        /// <response code="500">Unauthorized</response>
         [HttpGet("{id}/inspections")]
         [Authorize]
-        public async Task<IActionResult> GetListPatientInspections(Guid id, bool? groopedFlag = null, [FromQuery] List<string> icdRoots = null, int page = 1, int size = 5)
+        public async Task<ActionResult<InspectionPageListDTO>> GetListPatientInspections(Guid id, bool? groopedFlag = null, [FromQuery] List<string> icdRoots = null, int page = 1, int size = 5)
         {
             var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
 
@@ -82,14 +124,22 @@ namespace MedInfoSystem.Controllers
             {
                 var listInspections = await _patientService.GetPatientInspections(id, groopedFlag, icdRoots, page, size);
 
-                return Ok((InspectionPageListDTO)listInspections);
+                return Ok(listInspections);
             }
             return Unauthorized("User is not authorized");
         }
 
+        /// <summary>
+        /// Get patient card
+        /// </summary>
+        /// <param name="id">Patient's identifier</param>
+        /// <response code="200">Success</response>
+        /// <response code="401">Аuthorized</response>
+        /// <response code="404">Not Found</response>
+        /// <response code="500">Unauthorized</response>
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<IActionResult> GetPatientId(Guid id)
+        public async Task<ActionResult<PatientInfoDTO>> GetPatientId(Guid id)
         {
             var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
 
@@ -103,9 +153,18 @@ namespace MedInfoSystem.Controllers
             return Unauthorized("User is not authorized");
         }
 
+        /// <summary>
+        /// Search for patient medical inspections without child inspections
+        /// </summary>
+        /// <param name="id">Patient's identifier</param>
+        /// <param name="request">part of the diagnosis name or code</param>
+        /// <response code="200">Patients inspections list retrieved</response>
+        /// <response code="401">Аuthorized</response>
+        /// <response code="404">Patient not found</response>
+        /// <response code="500">Unauthorized</response>
         [HttpGet("{id}/inspections/search")]
         [Authorize]
-        public async Task<IActionResult> GetPationInspectionsWithoutChildInspections(Guid id, string? request)
+        public async Task<ActionResult<InspectionShortModelDTO>> GetPationInspectionsWithoutChildInspections(Guid id, string? request)
         {
             var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
 

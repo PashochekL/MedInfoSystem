@@ -21,6 +21,12 @@ namespace MedInfoSystem.Controllers
             _tokenBlacklistService = tokenBlacklistService;
         }
 
+        /// <summary>
+        /// Register new user
+        /// </summary>
+        /// <response code="200">Doctor was registered</response>
+        /// <response code="400">Invalid arguments</response>
+        /// <response code="500">InternalServerError</response>
         [HttpPost("register")]
         public async Task<IActionResult> AddNewUser([FromBody] DoctorRegisterDTO doctorRegisterDTO)
         {
@@ -29,6 +35,12 @@ namespace MedInfoSystem.Controllers
             return Ok(new { token = tokenAutorize });
         }
 
+        /// <summary>
+        /// Log in to the system
+        /// </summary>
+        /// <response code="200">Doctor was registered</response>
+        /// <response code="400">Invalid arguments</response>
+        /// <response code="500">InternalServerError</response>
         [HttpPost("login")]
         public async Task<IActionResult> AutorizeDoctor([FromBody] DoctorLoginDTO doctorLoginDTO)
         {
@@ -37,6 +49,12 @@ namespace MedInfoSystem.Controllers
             return Ok(new { token = tokenAutorize });
         }
 
+        /// <summary>
+        /// Log out system user
+        /// </summary>
+        /// <response code="200">Success</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="500">InternalServerError</response>
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> LogoutUser()
@@ -55,9 +73,16 @@ namespace MedInfoSystem.Controllers
             return Unauthorized("User is not authorized");
         }
 
+        /// <summary>
+        /// Get user profile
+        /// </summary>
+        /// <response code="200">Success</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">Not Found</response>
+        /// <response code="500">InternalServerError</response>
         [HttpGet("profile")]
         [Authorize]
-        public async Task<IActionResult> GetUserProfile()
+        public async Task<ActionResult<DoctorModelDTO>> GetUserProfile()
         {
             var doctorIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "doctorId");
 
@@ -75,6 +100,14 @@ namespace MedInfoSystem.Controllers
             return Unauthorized("User is not authorized");
         }
 
+        /// <summary>
+        /// Edit user profile
+        /// </summary>
+        /// <response code="200">Success</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">Not Found</response>
+        /// <response code="500">InternalServerError</response>
         [HttpPut("profile")]
         [Authorize]
         public async Task<IActionResult> EditUserProfile([FromBody] DoctorEditDTO doctorEditDTO)
