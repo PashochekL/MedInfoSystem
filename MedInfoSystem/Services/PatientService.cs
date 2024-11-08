@@ -87,8 +87,6 @@ namespace MedInfoSystem.Services
 
                 }).ToList();
 
-            Console.WriteLine($"Items after pagination: {items.Count}");
-
             if (!items.Any())
             {
                 throw new BadHttpRequestException("Invalid value for attribute page");
@@ -158,8 +156,6 @@ namespace MedInfoSystem.Services
                 listPatients = newPationsList;
             }
 
-            Console.WriteLine($"Items before pagination: {listPatients.Count}");
-
             if (onlyMine == true)
             {
                 var inspectionsDoneByDoctor = await _dbContext.Inspections.Where(i => i.DoctorId == doctorId).ToListAsync();
@@ -206,8 +202,6 @@ namespace MedInfoSystem.Services
 
                 listPatients = newPationsList;
             }
-
-            Console.WriteLine($"Items before pagination: {listPatients.Count}");
 
             if (sorting != null)
             {
@@ -273,8 +267,6 @@ namespace MedInfoSystem.Services
                 }
             }
 
-            Console.WriteLine($"Items before pagination: {listPatients.Count}");
-
             Pagination pagination = new Pagination(count, page, size);
             PatientPageListDTO inspectionPageListDTO = new PatientPageListDTO
             {
@@ -305,6 +297,25 @@ namespace MedInfoSystem.Services
             if (doctor == null)
             {
                 throw new BadHttpRequestException("Doctor with the specified speciality not found");
+            }
+
+            if (inspectionCreateDTO.PreviousInspectionId != null)
+            {
+                foreach (var testInspection in allInspections)
+                {
+                    if (testInspection.Id == inspectionCreateDTO.PreviousInspectionId)
+                    {
+                        if (testInspection.NextVisitDate != inspectionCreateDTO.Date)
+                        {
+                            throw new BadHttpRequestException("Error date visit");
+                        }
+
+                        if (testInspection.Conclusion == Conclusion.Recovery)
+                        {
+                            throw new BadHttpRequestException("The patient recovered");
+                        }
+                    }
+                }
             }
 
             Inspection inspection = null;
@@ -341,12 +352,28 @@ namespace MedInfoSystem.Services
                         Complaints = inspectionCreateDTO.Complaints,
                         Treatment = inspectionCreateDTO.Treatment,
                         Conclusion = inspectionCreateDTO.Conclusion,
-                        DeathDate = inspectionCreateDTO.DeathDate,
                         PatientId = patientId,
                         DoctorId = doctor.Id,
                         Date = inspectionCreateDTO.Date,
                         CreateTime = DateTime.UtcNow
                     };
+
+                    if (inspectionCreateDTO.DeathDate != null)
+                    {
+                        if (inspectionCreateDTO.DeathDate <= inspectionCreateDTO.Date)
+                        {
+                            inspection.DeathDate = inspectionCreateDTO.DeathDate;
+                        }
+                        else
+                        {
+                            throw new BadHttpRequestException("Patient not found");
+                        }
+                    }
+                    else
+                    {
+                        inspection.DeathDate = DateTime.UtcNow;
+                    }
+
                     await _dbContext.Inspections.AddAsync(inspection);
                     await _dbContext.SaveChangesAsync();
                     patient.Inspection.Add(inspection);
@@ -380,9 +407,8 @@ namespace MedInfoSystem.Services
             {
                 foreach (var inspect in allInspections)
                 {
-                    if ((inspect.PreviousInspectionId != null && inspect.BaseInspectionId != null /*&& inspect.NextVisitDate.Value.Date == inspectionCreateDTO.Date*/
-                        && inspect.Id == inspectionCreateDTO.PreviousInspectionId) || (inspect.BaseInspectionId != null
-                        /*&& inspect.NextVisitDate.Value.Date == inspectionCreateDTO.Date*/ && inspect.Id == inspectionCreateDTO.PreviousInspectionId))
+                    if ((inspect.PreviousInspectionId != null && inspect.BaseInspectionId != null && inspect.Id == inspectionCreateDTO.PreviousInspectionId) 
+                        || (inspect.BaseInspectionId != null && inspect.Id == inspectionCreateDTO.PreviousInspectionId))
                     {
                         if (inspectionCreateDTO.Conclusion == Conclusion.Disease)
                         {
@@ -418,7 +444,6 @@ namespace MedInfoSystem.Services
                                 Complaints = inspectionCreateDTO.Complaints,
                                 Treatment = inspectionCreateDTO.Treatment,
                                 Conclusion = inspectionCreateDTO.Conclusion,
-                                DeathDate = inspectionCreateDTO.DeathDate,  // по-сути можно проверять если нет даты смерти то ставить равной дате приема но это bruh
                                 PreviousInspectionId = inspect.Id,
                                 PatientId = patientId,
                                 DoctorId = doctor.Id,
@@ -426,6 +451,23 @@ namespace MedInfoSystem.Services
                                 Date = inspectionCreateDTO.Date,
                                 CreateTime = DateTime.UtcNow
                             };
+
+                            if (inspectionCreateDTO.DeathDate != null)
+                            {
+                                if (inspectionCreateDTO.DeathDate <= inspectionCreateDTO.Date)
+                                {
+                                    inspection.DeathDate = inspectionCreateDTO.DeathDate;
+                                }
+                                else
+                                {
+                                    throw new BadHttpRequestException("Patient not found");
+                                }
+                            }
+                            else
+                            {
+                                inspection.DeathDate = DateTime.UtcNow;
+                            }
+
                             await _dbContext.Inspections.AddAsync(inspection);
                             await _dbContext.SaveChangesAsync();
 
@@ -492,12 +534,28 @@ namespace MedInfoSystem.Services
                         Complaints = inspectionCreateDTO.Complaints,
                         Treatment = inspectionCreateDTO.Treatment,
                         Conclusion = inspectionCreateDTO.Conclusion,
-                        DeathDate = inspectionCreateDTO.DeathDate,  // по-сути можно проверять если нет даты смерти то ставить равной дате приема но это bruh
                         PatientId = patientId,
                         DoctorId = doctor.Id,
                         Date = inspectionCreateDTO.Date,
                         CreateTime = DateTime.UtcNow
                     };
+
+                    if (inspectionCreateDTO.DeathDate != null)
+                    {
+                        if (inspectionCreateDTO.DeathDate <= inspectionCreateDTO.Date)
+                        {
+                            inspection.DeathDate = inspectionCreateDTO.DeathDate;
+                        }
+                        else
+                        {
+                            throw new BadHttpRequestException("Patient not found");
+                        }
+                    }
+                    else
+                    {
+                        inspection.DeathDate = DateTime.UtcNow;
+                    }
+
                     await _dbContext.Inspections.AddAsync(inspection);
                     await _dbContext.SaveChangesAsync();
                     patient.Inspection.Add(inspection);
