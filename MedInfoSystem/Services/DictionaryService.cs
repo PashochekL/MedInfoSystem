@@ -27,31 +27,29 @@ namespace MedInfoSystem.Services
 
             var count = await source.CountAsync();
 
-            var items = await source.Skip((page - 1) * size).Take(size).
-            Select(s => new SpecialityDTO
+            if (page <= 0 || size <= 0)
+            {
+                throw new BadHttpRequestException("Invalid arguments for page/size");
+            }
+
+            List<SpecialityDTO> newSource = source.Select(s => new SpecialityDTO
             {
                 Id = s.Id,
                 CreateTime = s.CreateTime,
                 Name = s.Name
-            })
-            .ToListAsync();
-
-            if (!items.Any())
-            {
-                throw new BadHttpRequestException("Invalid value for attribute page");
-            }
+            }).ToList(); ;
 
             List<SpecialityDTO> listSpecialities;
 
             if (name ==  null)
             {
-                listSpecialities = items;
+                listSpecialities = newSource;
             }
             else
             {
                 listSpecialities = new List<SpecialityDTO>();
 
-                foreach (var item in items)
+                foreach (var item in newSource)
                 {
                     bool contrains = item.Name.Contains(name);
 
@@ -61,12 +59,26 @@ namespace MedInfoSystem.Services
                     }
                 }
             }
-            
+
+            var items = listSpecialities.Skip((page - 1) * size).Take(size).
+            Select(s => new SpecialityDTO
+            {
+                Id = s.Id,
+                CreateTime = s.CreateTime,
+                Name = s.Name
+            })
+            .ToList();
+
+            if (!items.Any())
+            {
+                throw new BadHttpRequestException("Invalid value for attribute page");
+            }
+
             Pagination pagination = new Pagination(count, page, size);
             SpecialitiesDTO specialityDTO = new SpecialitiesDTO
             {
                 Pagination = pagination,
-                Specialities = listSpecialities
+                Specialities = items
             };
             return specialityDTO;
         }
@@ -76,6 +88,41 @@ namespace MedInfoSystem.Services
             IQueryable<ICD> source = _dbContext.ICDs;
 
             var count = await source.CountAsync();
+
+            if (page <= 0 || size <= 0)
+            {
+                throw new BadHttpRequestException("Invalid arguments for page/size");
+            }
+
+            List<ICDRecordModelDTO> newSource = source.Select(s => new ICDRecordModelDTO
+            {
+                Id = s.Id,
+                Code = s.CodeICD,
+                CreateTime = s.CreateTime,
+                Name = s.Name
+            }).ToList();
+
+            List<ICDRecordModelDTO> icdRecordModelDTO;
+
+            if (request == null)
+            {
+                icdRecordModelDTO = newSource;
+            }
+
+            else
+            {
+                icdRecordModelDTO = new List<ICDRecordModelDTO>();
+
+                foreach (var item in newSource)
+                {
+                    bool contrains = item.Code.Contains(request);
+
+                    if (contrains)
+                    {
+                        icdRecordModelDTO.Add(item);
+                    }
+                }
+            }
 
             var items = await source.Skip((page - 1) * size).Take(size).
             Select(s => new ICDRecordModelDTO
@@ -92,33 +139,10 @@ namespace MedInfoSystem.Services
                 throw new BadHttpRequestException("Invalid value for attribute page");
             }
 
-            List<ICDRecordModelDTO> icdRecordModelDTO;
-
-            if (request == null)
-            {
-                icdRecordModelDTO = items;
-            }
-
-            else
-            {
-                icdRecordModelDTO = new List<ICDRecordModelDTO>();
-
-                foreach (var item in items)
-                {
-                    bool contrains = item.Code.Contains(request);
-
-                    if (contrains)
-                    {
-                        icdRecordModelDTO.Add(item);
-                    }
-                }
-            }
-
-
             Pagination pagination = new Pagination(count, page, size);
             ICDRecordsDTO icsRecordsDTO = new ICDRecordsDTO
             {
-                Records = icdRecordModelDTO,
+                Records = items,
                 Pagination = pagination
             };
             return icsRecordsDTO;

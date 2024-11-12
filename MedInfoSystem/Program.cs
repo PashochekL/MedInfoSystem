@@ -116,7 +116,6 @@ builder.Services.AddScoped<IPatientService, PatientService>();
 builder.Services.AddScoped<IDictionaryService, DictionaryService>();
 builder.Services.AddScoped<IConsultationService, ConsultationService>();
 builder.Services.AddScoped<IInspectionService, InspectionService>();
-builder.Services.AddScoped<ISpecialtyService, SpecialtyService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<TokenBlacklistService>();
 builder.Services.AddScoped<CsvDataLoaderService>();

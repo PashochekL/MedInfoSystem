@@ -56,7 +56,12 @@ namespace MedInfoSystem.Services
 
             if (scheduledVisits == true && onlyMine == true)
             {
-                throw new BadHttpRequestException("Invalid arguments for filtration/pagination/sorting");
+                throw new BadHttpRequestException("Invalid arguments for filtration/sorting");
+            }
+
+            if (page <= 0 || size <= 0)
+            {
+                throw new BadHttpRequestException("Invalid arguments for page/size");
             }
 
             var patientsDictionary = patients.ToDictionary(p => p.Id);
@@ -74,46 +79,36 @@ namespace MedInfoSystem.Services
 
             var count = newPatients.Count;
 
-            List<PatientGetDTO> items = null;
-
-            items = newPatients.Skip((page - 1) * size).Take(size).
-                Select(i => new PatientGetDTO
-                {
-                    Id = i.Id,
-                    CreateTime = i.CreateTime,
-                    Birthday = i.Birthday,
-                    Gender = i.Gender,
-                    Name = i.Name
-
-                }).ToList();
-
-            if (!items.Any())
+            List<PatientGetDTO> newPatientsGet = newPatients.Select(i => new PatientGetDTO
             {
-                throw new BadHttpRequestException("Invalid value for attribute page");
-            }
+                Id = i.Id,
+                CreateTime = i.CreateTime,
+                Birthday = i.Birthday,
+                Gender = i.Gender,
+                Name = i.Name
+
+            }).ToList();
 
             List <PatientGetDTO> listPatients = null;
 
             if (name == null)
             {
-                listPatients = items;
+                listPatients = newPatientsGet;
             }
             else
             {
                 listPatients = new List<PatientGetDTO>();
 
-                foreach (var item in items)
+                foreach (var patientsGet in newPatientsGet)
                 {
-                    bool contrains = item.Name.Contains(name);
+                    bool contrains = patientsGet.Name.Contains(name);
 
                     if (contrains)
                     {
-                        listPatients.Add(item);
+                        listPatients.Add(patientsGet);
                     }
                 }
             }
-
-            Console.WriteLine($"Items before pagination: {listPatients.Count}");
 
             if (scheduledVisits == true)
             {
@@ -267,11 +262,29 @@ namespace MedInfoSystem.Services
                 }
             }
 
+            List<PatientGetDTO> items = null;
+
+            items = listPatients.Skip((page - 1) * size).Take(size).
+                Select(i => new PatientGetDTO
+                {
+                    Id = i.Id,
+                    CreateTime = i.CreateTime,
+                    Birthday = i.Birthday,
+                    Gender = i.Gender,
+                    Name = i.Name
+
+                }).ToList();
+
+            if (!items.Any())
+            {
+                throw new BadHttpRequestException("Invalid value for attribute page");
+            }
+
             Pagination pagination = new Pagination(count, page, size);
             PatientPageListDTO inspectionPageListDTO = new PatientPageListDTO
             {
                 Pagination = pagination,
-                Patients = listPatients
+                Patients = items
             };
             return inspectionPageListDTO;
         }
@@ -647,7 +660,7 @@ namespace MedInfoSystem.Services
         {
             IQueryable<Inspection> inspections = _dbContext.Inspections.Include(i => i.Diagnoses).Where(i => i.PatientId == patientId);
 
-            if (!inspections.Any())
+            if (!await inspections.AnyAsync())
             {
                 throw new NotFoundException("Patient not found");
             }
